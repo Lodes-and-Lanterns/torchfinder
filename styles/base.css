@@ -1,0 +1,132 @@
+/* =============================================================================
+   base.css: Reset, custom properties, base elements, links, utilities
+   ============================================================================= */
+
+@import '../common-web/tokens.css?v=f8f8a26b';
+
+/* Reset */
+/*-------*/
+*, *::before, *::after { box-sizing: border-box; }
+body, h1, h2, h3, h4, h5, h6, p, ul, ol, figure, blockquote { margin: 0; padding: 0; }
+button, input, textarea, select { font: inherit; }
+img, svg { display: block; max-width: 100%; }
+[hidden] { display: none !important; }
+
+/* Responsive font scale */
+/*-----------------------*/
+:root { --tf-font-size: 100%; }
+@media (min-width: 576px)  { :root { --tf-font-size: 106.25%; } }
+@media (min-width: 768px)  { :root { --tf-font-size: 112.5%;  } }
+@media (min-width: 1024px) { :root { --tf-font-size: 118.75%; } }
+@media (min-width: 1280px) { :root { --tf-font-size: 125%;    } }
+@media (min-width: 1536px) { :root { --tf-font-size: 131.25%; } }
+html { font-size: var(--tf-font-size); }
+
+/* Properties */
+/*------------*/
+:root {
+  --tf-sidebar-width: 300px;
+  --tf-panel-width: 340px;
+  /* Accent and color tokens derived from common-web brand tokens */
+  --tf-accent: var(--ll-accent);
+  --tf-accent-hover: var(--ll-accent-hover);
+  --tf-accent-fg: var(--ll-accent-fg);
+  --tf-border-radius-pill: 999px;
+  --tf-gap: 1.5rem;
+  --tf-sidebar-z: 200;
+  --tf-overlay-z: 199;
+  --tf-modal-z: 300;
+  --tf-tooltip-z: 1000;
+  /* Base tokens (light mode defaults via common-web) */
+  --tf-radius: 0.25rem;
+  --tf-border: var(--ll-border);
+  --tf-muted: var(--ll-text-muted);
+  --tf-color: var(--ll-text);
+  --tf-bg: var(--ll-bg);
+  --tf-surface: var(--ll-surface);
+  --tf-input-bg: #fff;
+  --tf-danger: #dc2626;
+}
+
+[data-theme="dark"] {
+  /* App-specific dark overrides not covered by common-web tokens */
+  --tf-input-bg: #1a2030;
+  --tf-danger: #f87171;
+}
+
+/* Base Elements */
+/*---------------*/
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
+  color: var(--tf-color);
+  background: var(--tf-bg);
+  line-height: 1.5;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 1rem;
+}
+
+h1 { font-size: 2rem; }
+h2 { font-size: 1.75rem; }
+h3 { font-size: 1.5rem; }
+h4 { font-size: 1.25rem; }
+h5 { font-size: 1.125rem; }
+h6 { font-size: 1rem; }
+
+p { margin-bottom: 1rem; }
+p:last-child { margin-bottom: 0; }
+
+ul, ol { padding-left: 1.5rem; }
+
+hr {
+  border: none;
+  border-top: 1px solid var(--tf-border);
+  margin: 1rem 0;
+}
+
+label { cursor: pointer; }
+
+/* Links */
+/*-------*/
+a {
+  color: var(--tf-accent);
+  text-decoration-color: currentColor;
+}
+
+a:hover {
+  color: var(--tf-accent-hover);
+}
+
+/* No-script notice */
+/*------------------*/
+.noscript-notice {
+  max-width: 600px;
+  margin: 4rem auto;
+  padding: 1.5rem;
+  text-align: center;
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius);
+  color: var(--tf-color);
+}
+
+.noscript-notice p {
+  margin-top: 0.75rem;
+  color: var(--tf-muted);
+}
+
+/* Screen-reader only */
+/*--------------------*/
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

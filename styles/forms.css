@@ -1,0 +1,87 @@
+/* =============================================================================
+   forms.css: Form element styles
+   ============================================================================= */
+
+/* Form Elements */
+/*---------------*/
+input:not([type=checkbox]):not([type=radio]),
+select,
+textarea {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius);
+  background: var(--tf-input-bg);
+  color: var(--tf-color);
+  transition: border-color 0.15s;
+}
+
+input:not([type=checkbox]):not([type=radio]):focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--tf-accent);
+  box-shadow: 0 0 0 2px rgba(245, 168, 72, 0.3);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--tf-muted);
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+input[type=search] {
+  border-radius: 5rem;
+}
+
+[data-theme="dark"] input[type=number] {
+  color-scheme: dark;
+}
+
+#search-wrapper {
+  position: relative;
+}
+
+#search-input {
+  padding-right: 2.25rem;
+}
+
+/* Suppress the browser's native clear button (we provide our own) */
+#search-input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+#search-clear {
+  position: absolute;
+  right: 0.6rem;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0.2rem 0.4rem;
+  background: none;
+  border: none;
+  box-shadow: none;
+  color: var(--tf-muted);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+#search-clear:hover:not(:disabled) {
+  background: none;
+  border-color: transparent;
+  color: var(--tf-color);
+}
+
+input[type=checkbox] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--tf-accent);
+  cursor: pointer;
+}
