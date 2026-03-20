@@ -1,0 +1,70 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+  repository_dispatch:
+    types:
+      - data-updated
+
+permissions:
+  contents: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: true
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Test
+        run: deno test tests/
+
+      - name: Build
+        run: deno run --allow-read --allow-write --allow-net build.ts
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./staging
+          force_orphan: true
+          disable_nojekyll: false
+
+      - name: Tag release
+        run: |
+          DATE=$(date -u +%Y.%m.%d)
+
+          # Collect all tags for today (bare date and date.N), sort by suffix numerically
+          EXISTING=$(git tag -l "${DATE}" "${DATE}.*" | sort -t. -k4 -n)
+
+          if [ -z "$EXISTING" ]; then
+            TAG="${DATE}"
+          else
+            LAST=$(echo "$EXISTING" | tail -1)
+            if [ "$LAST" = "${DATE}" ]; then
+              TAG="${DATE}.1"
+            else
+              SUFFIX="${LAST#${DATE}.}"
+              TAG="${DATE}.$((SUFFIX + 1))"
+            fi
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "$TAG"
+          git push origin "$TAG"
+          echo "Tagged: $TAG"

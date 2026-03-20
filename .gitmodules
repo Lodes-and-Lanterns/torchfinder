@@ -1,0 +1,3 @@
+[submodule "common-web"]
+	path = common-web
+	url = git@github.com:Lodes-and-Lanterns/common-web.git

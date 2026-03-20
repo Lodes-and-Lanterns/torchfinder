@@ -1,0 +1,24 @@
+# Build output
+staging/
+
+# Local dev data (copied from staging/dist/ for iterative development; refer to CONTRIBUTING.md)
+dist/
+
+# Deno local cache (if DENO_DIR is set to a project-local path)
+.deno/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
