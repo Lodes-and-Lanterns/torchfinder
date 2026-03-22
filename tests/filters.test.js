@@ -70,7 +70,7 @@ function makeEntry(overrides = {}) {
   };
 }
 
-// hasActiveFilters
+// HAS_ACTIVE_FILTERS
 ///////////////////
 
 Deno.test("hasActiveFilters: clean state returns false", () => {
@@ -144,7 +144,7 @@ Deno.test("hasActiveFilters: excludeUnspecifiedLevel returns true", () => {
   assertEquals(hasActiveFilters(), true);
 });
 
-// matchesText
+// MATCHES_TEXT
 //////////////
 
 const sampleEntry = {
@@ -190,7 +190,7 @@ Deno.test("matchesText: no match when character option absent", () => {
   assertEquals(matchesText({ ...sampleEntry, character_options: ["Fighter"] }, "wizard"), false);
 });
 
-// rangesOverlap
+// RANGES_OVERLAP
 ////////////////
 
 Deno.test("rangesOverlap: no filter (both null) always passes", () => {
@@ -226,17 +226,17 @@ Deno.test("rangesOverlap: ranges touching exactly at boundary pass", () => {
 });
 
 Deno.test("rangesOverlap: null entry max treated as Infinity", () => {
-  // entry covers 5+, filter covers 10–20 → overlap
+  // entry covers 5+, filter covers 10-20 - overlap
   assertEquals(rangesOverlap(5, null, 10, 20, false), true);
 });
 
 Deno.test("rangesOverlap: null filter max treated as Infinity", () => {
-  // entry covers 10–20, filter covers 5+ → overlap
+  // entry covers 10-20, filter covers 5+ - overlap
   assertEquals(rangesOverlap(10, 20, 5, null, false), true);
 });
 
 Deno.test("rangesOverlap: null entry min treated as 0", () => {
-  // entry covers up to 3, filter covers 1–5 → overlap
+  // entry covers up to 3, filter covers 1-5 - overlap
   assertEquals(rangesOverlap(null, 3, 1, 5, false), true);
 });
 
@@ -244,7 +244,7 @@ Deno.test("rangesOverlap: entry max below filter min fails", () => {
   assertEquals(rangesOverlap(1, 2, 5, null, false), false);
 });
 
-// applyFilters
+// APPLY_FILTERS
 ///////////////
 
 Deno.test("applyFilters: null data yields empty filtered", () => {
@@ -639,7 +639,7 @@ Deno.test("applyFilters: no date filter passes all entries regardless of date", 
   assertEquals(state.filtered.length, 3);
 });
 
-// sortFiltered
+// SORT_FILTERED
 ///////////////
 
 Deno.test("sortFiltered: title sorts alphabetically ascending", () => {
@@ -735,7 +735,7 @@ Deno.test("sortFiltered: level sorts ascending by lmin, null sorts last", () => 
   );
 });
 
-// rangesOverlap: regression for excludeUnspecified without a range filter
+// RANGES_OVERLAP: REGRESSION FOR EXCLUDE_UNSPECIFIED WITHOUT A RANGE FILTER
 //////////////////////////////////////////////////////////////////////////
 
 Deno.test("rangesOverlap: no range filter, excludeUnspecified true, no entry data -> fails", () => {
@@ -751,7 +751,7 @@ Deno.test("rangesOverlap: no range filter, excludeUnspecified true, entry has da
   assertEquals(rangesOverlap(1, 3, null, null, true), true);
 });
 
-// applyFilters: excludeUnspecified standalone (no range set)
+// APPLY_FILTERS: EXCLUDE_UNSPECIFIED STANDALONE (NO RANGE SET)
 /////////////////////////////////////////////////////////////
 
 Deno.test("applyFilters: excludeUnspecifiedLevel alone removes null-level entries", () => {
@@ -778,7 +778,7 @@ Deno.test("applyFilters: excludeUnspecifiedParty alone removes null-party entrie
   assertEquals(state.filtered[0].id, "specified");
 });
 
-// sortFiltered: shuffle
+// SORT_FILTERED: SHUFFLE
 ////////////////////////
 
 Deno.test("sortFiltered: shuffle produces a valid permutation", () => {

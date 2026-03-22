@@ -14,7 +14,7 @@ const DATA_URL = "https://github.com/Lodes-and-Lanterns/torchfinder-data/release
 const SITE_URL = "https://torchfinder.lodesandlanterns.com";
 const FEED_ITEM_LIMIT = 50;
 
-// Utilities
+// UTILITIES
 ////////////
 
 function xmlEscape(str: string): string {
@@ -34,7 +34,7 @@ async function sha256hex(content: string): Promise<string> {
   return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-// RSS Feed
+// RSS FEED
 ///////////
 
 interface Adventure {
@@ -102,10 +102,10 @@ function versionImports(source: string, hash: string): string {
   return source.replace(/from '(\.[^'?]+\.js)'/g, `from '$1?v=${hash}'`);
 }
 
-// Main
+// MAIN
 ///////
 
-console.log("Torchfinder build starting…");
+console.log("Torchfinder build starting...");
 
 // Step 1: Fetch torchfinder-dataset.jsonl
 console.log(`Fetching ${DATA_URL}`);
@@ -142,11 +142,11 @@ try {
 }
 
 // Step 2: Generate RSS feed
-console.log("Generating RSS feed…");
+console.log("Generating RSS feed...");
 const feedXml = generateFeed(adventures);
 
 // Step 3: Cache-bust assets
-console.log("Computing asset hashes…");
+console.log("Computing asset hashes...");
 
 // Hash the dataset so its URL is versioned independently of JS/CSS
 const dataHash = (await sha256hex(datasetJsonl)).slice(0, 8);
@@ -211,7 +211,7 @@ indexHtml = indexHtml.replace(
 );
 
 // Step 4: Assemble staging/
-console.log("Assembling staging/ directory…");
+console.log("Assembling staging/ directory...");
 await Deno.mkdir("staging/dist", { recursive: true });
 await Deno.mkdir("staging/scripts", { recursive: true });
 

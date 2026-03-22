@@ -12,7 +12,7 @@ import {
   isUpcoming,
 } from "../scripts/utils.js";
 
-// escapeHtml
+// ESCAPE_HTML
 /////////////
 
 Deno.test("escapeHtml: escapes &", () => {
@@ -43,7 +43,7 @@ Deno.test("escapeHtml: multiple special chars in one string", () => {
   assertEquals(escapeHtml('<a href="x&y">'), "&lt;a href=&quot;x&amp;y&quot;&gt;");
 });
 
-// slugToLabel
+// SLUG_TO_LABEL
 //////////////
 
 Deno.test("slugToLabel: single word capitalizes", () => {
@@ -66,7 +66,7 @@ Deno.test("slugToLabel: null returns empty string", () => {
   assertEquals(slugToLabel(null), "");
 });
 
-// langName
+// LANG_NAME
 ///////////
 
 Deno.test("langName: en returns English", () => {
@@ -92,7 +92,7 @@ Deno.test("langName: all LANGUAGE_NAMES keys resolve without error", () => {
   }
 });
 
-// formatLevelRange
+// FORMAT_LEVEL_RANGE
 ///////////////////
 
 Deno.test("formatLevelRange: null/null returns null", () => {
@@ -119,7 +119,7 @@ Deno.test("formatLevelRange: min/max range", () => {
   assertEquals(formatLevelRange(1, 3), "Levels 1–3");
 });
 
-// formatPartySize
+// FORMAT_PARTY_SIZE
 //////////////////
 
 Deno.test("formatPartySize: null/null returns null", () => {
@@ -142,7 +142,7 @@ Deno.test("formatPartySize: min/max range", () => {
   assertEquals(formatPartySize(3, 5), "3–5 players");
 });
 
-// formatDate
+// FORMAT_DATE
 /////////////
 
 Deno.test("formatDate: empty string returns empty string", () => {
@@ -170,7 +170,7 @@ Deno.test("formatDate: year-only returns the year string", () => {
   assertEquals(formatDate("2024"), "2024");
 });
 
-// formatDateShort
+// FORMAT_DATE_SHORT
 //////////////////
 
 Deno.test("formatDateShort: empty string returns empty string", () => {
@@ -201,7 +201,7 @@ Deno.test("formatDateShort: December is month 12", () => {
   assertEquals(formatDateShort("2022-12-31"), "12/2022");
 });
 
-// isUpcoming
+// IS_UPCOMING
 /////////////
 
 Deno.test("isUpcoming: null returns false", () => {
@@ -220,7 +220,7 @@ Deno.test("isUpcoming: far future date returns true", () => {
   assertEquals(isUpcoming("2099-12-31"), true);
 });
 
-// debounce
+// DEBOUNCE
 ///////////
 
 Deno.test("debounce: returns a function", () => {

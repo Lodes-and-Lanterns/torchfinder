@@ -1,7 +1,7 @@
 import { assertEquals, assertStrictEquals } from "jsr:@std/assert";
 import { processChunk, flushBuffer } from "../scripts/worker-utils.js";
 
-// processChunk
+// PROCESS_CHUNK
 ///////////////
 
 Deno.test("processChunk: complete line yields one entry and empty buffer", () => {
@@ -79,7 +79,7 @@ Deno.test("processChunk: accumulates correctly across three chunks", () => {
   assertStrictEquals(c.buffer, "");
 });
 
-// flushBuffer
+// FLUSH_BUFFER
 //////////////
 
 Deno.test("flushBuffer: empty string returns null", () => {

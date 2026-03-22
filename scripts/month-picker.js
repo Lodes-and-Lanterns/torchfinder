@@ -8,7 +8,7 @@ export const MONTH_NAMES = [
   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
 ];
 
-// Utilities
+// UTILITIES
 ////////////
 
 // Parse a YYYY-MM string into { year, month } (month is 0-indexed).
@@ -44,7 +44,7 @@ export function isMonthDisabled(year, month, otherValue, isStart) {
   return isStart ? thisVal > otherVal : thisVal < otherVal;
 }
 
-// createMonthPicker
+// CREATE_MONTH_PICKER
 ////////////////////
 // Attaches a custom month/year popover to an <input>.
 //

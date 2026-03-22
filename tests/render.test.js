@@ -71,7 +71,7 @@ function makeEntry(overrides = {}) {
   };
 }
 
-// filterHiddenCount
+// FILTER_HIDDEN_COUNT
 ////////////////////
 
 Deno.test("filterHiddenCount: returns 0 when total equals visible", () => {
@@ -99,7 +99,7 @@ Deno.test("PUBLISHER_AUTHOR_TOP_N is 20", () => {
   assertEquals(PUBLISHER_AUTHOR_TOP_N, 20);
 });
 
-// row
+// ROW
 //////
 
 Deno.test("row: produces th with label and td with value", () => {
@@ -125,7 +125,7 @@ Deno.test("row: wraps in a tr element", () => {
   assert(html.endsWith("</tr>"));
 });
 
-// computePageNumbers
+// COMPUTE_PAGE_NUMBERS
 /////////////////////
 
 Deno.test("computePageNumbers: total=1 returns [1]", () => {
@@ -141,36 +141,36 @@ Deno.test("computePageNumbers: total=7 boundary returns all pages", () => {
 });
 
 Deno.test("computePageNumbers: current=1 of 10, only trailing ellipsis", () => {
-  assertEquals(computePageNumbers(1, 10), [1, 2, "…", 10]);
+  assertEquals(computePageNumbers(1, 10), [1, 2, "...", 10]);
 });
 
 Deno.test("computePageNumbers: current=2 of 10, no leading ellipsis", () => {
-  assertEquals(computePageNumbers(2, 10), [1, 2, 3, "…", 10]);
+  assertEquals(computePageNumbers(2, 10), [1, 2, 3, "...", 10]);
 });
 
 Deno.test("computePageNumbers: current=3 of 10, no leading ellipsis", () => {
-  assertEquals(computePageNumbers(3, 10), [1, 2, 3, 4, "…", 10]);
+  assertEquals(computePageNumbers(3, 10), [1, 2, 3, 4, "...", 10]);
 });
 
 Deno.test("computePageNumbers: current=4 of 10, both ellipses", () => {
-  assertEquals(computePageNumbers(4, 10), [1, "…", 3, 4, 5, "…", 10]);
+  assertEquals(computePageNumbers(4, 10), [1, "...", 3, 4, 5, "...", 10]);
 });
 
 Deno.test("computePageNumbers: current=5 of 10 (middle), both ellipses", () => {
-  assertEquals(computePageNumbers(5, 10), [1, "…", 4, 5, 6, "…", 10]);
+  assertEquals(computePageNumbers(5, 10), [1, "...", 4, 5, 6, "...", 10]);
 });
 
 Deno.test("computePageNumbers: current=8 of 10, no trailing ellipsis", () => {
-  // current < total - 2 → 8 < 8 is false, so no trailing ellipsis
-  assertEquals(computePageNumbers(8, 10), [1, "…", 7, 8, 9, 10]);
+  // current < total - 2: 8 < 8 is false, so no trailing ellipsis
+  assertEquals(computePageNumbers(8, 10), [1, "...", 7, 8, 9, 10]);
 });
 
 Deno.test("computePageNumbers: current=9 of 10, no trailing ellipsis", () => {
-  assertEquals(computePageNumbers(9, 10), [1, "…", 8, 9, 10]);
+  assertEquals(computePageNumbers(9, 10), [1, "...", 8, 9, 10]);
 });
 
 Deno.test("computePageNumbers: current=10 of 10 (last), no trailing ellipsis", () => {
-  assertEquals(computePageNumbers(10, 10), [1, "…", 9, 10]);
+  assertEquals(computePageNumbers(10, 10), [1, "...", 9, 10]);
 });
 
 Deno.test("computePageNumbers: always includes 1 and total for large sets", () => {
@@ -187,7 +187,7 @@ Deno.test("computePageNumbers: window around current is correct", () => {
   assert(pages.includes(7));
 });
 
-// collectDistinctValues
+// COLLECT_DISTINCT_VALUES
 ////////////////////////
 
 Deno.test("collectDistinctValues: non-array field returns sorted unique values", () => {
@@ -241,7 +241,7 @@ Deno.test("collectDistinctValues: empty array field yields no values", () => {
   assertEquals(vals, []);
 });
 
-// collectTopValues
+// COLLECT_TOP_VALUES
 ///////////////////
 
 Deno.test("collectTopValues: FILTER_TOP_N is 8", () => {
@@ -327,7 +327,7 @@ Deno.test("collectTopValues: empty data returns empty array", () => {
   assertEquals(top, []);
 });
 
-// renderCardHtml
+// RENDER_CARD_HTML
 /////////////////
 
 Deno.test("renderCardHtml: contains data-id attribute", () => {
@@ -462,7 +462,7 @@ Deno.test("renderCardHtml: card-expanded div always present (shown/hidden via CS
   assert(html.includes("card-expanded"));
 });
 
-// buildExpandedHtml
+// BUILD_EXPANDED_HTML
 ////////////////////
 
 // desc renders in renderCardHtml (.card-description-snippet), not here.
@@ -678,7 +678,7 @@ Deno.test("buildExpandedHtml: report link encodes entry id in URL", () => {
   assert(html.includes("the-tomb-of-ash"));
 });
 
-// renderCardHtml: cover image consent
+// RENDER_CARD_HTML: COVER IMAGE CONSENT
 //////////////////////////////////////
 
 Deno.test("renderCardHtml: cover not rendered without consent", () => {
@@ -710,7 +710,7 @@ Deno.test("renderCardHtml: no cover rendered when consent granted but cover is n
   localStorage.removeItem("tf-cover-consent");
 });
 
-// renderCardHtml: directId title rendering
+// RENDER_CARD_HTML: DIRECT_ID TITLE RENDERING
 ///////////////////////////////////////////
 
 Deno.test("renderCardHtml: title is an anchor when state.directId does not match entry", () => {
@@ -741,7 +741,7 @@ Deno.test("renderCardHtml: Copy link button is present", () => {
   assert(html.includes("Copy link"));
 });
 
-// buildExpandedHtml: Includes / section ordering
+// BUILD_EXPANDED_HTML: INCLUDES / SECTION ORDERING
 /////////////////////////////////////////////////
 
 Deno.test("buildExpandedHtml: children section label is 'Includes'", () => {

@@ -7,7 +7,7 @@ import {
   SITE_URL,
 } from "../scripts/state.js";
 
-// Constants
+// CONSTANTS
 ////////////
 
 Deno.test("DATA_URL points to dist/torchfinder-dataset.jsonl", () => {
@@ -26,7 +26,7 @@ Deno.test("SITE_URL is an https URL", () => {
   assert(SITE_URL.startsWith("https://"), `Expected https URL, got: ${SITE_URL}`);
 });
 
-// State shape
+// STATE SHAPE
 //////////////
 // These tests only check key presence, not mutable default values, so they are
 // stable regardless of which order test files run.

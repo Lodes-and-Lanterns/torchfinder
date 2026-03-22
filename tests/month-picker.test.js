@@ -7,7 +7,7 @@ import {
   isMonthDisabled,
 } from "../scripts/month-picker.js";
 
-// parseYearMonth
+// PARSE_YEAR_MONTH
 //////////////////
 
 Deno.test("parseYearMonth: valid YYYY-MM string", () => {
@@ -33,7 +33,7 @@ Deno.test("parseYearMonth: invalid formats return null", () => {
   assertEquals(parseYearMonth("not-a-date"), null);
 });
 
-// formatYearMonth
+// FORMAT_YEAR_MONTH
 //////////////////
 
 Deno.test("formatYearMonth: pads month to two digits", () => {
@@ -42,7 +42,7 @@ Deno.test("formatYearMonth: pads month to two digits", () => {
   assertEquals(formatYearMonth(2000, 5), "2000-06");
 });
 
-// formatDisplay
+// FORMAT_DISPLAY
 /////////////////
 
 Deno.test("formatDisplay: returns human-readable string", () => {
@@ -58,7 +58,7 @@ Deno.test("formatDisplay: uses correct MONTH_NAMES", () => {
   }
 });
 
-// isMonthDisabled
+// IS_MONTH_DISABLED
 //////////////////
 
 Deno.test("isMonthDisabled: no otherValue => never disabled", () => {
@@ -72,7 +72,7 @@ Deno.test("isMonthDisabled: invalid otherValue => never disabled", () => {
   assertEquals(isMonthDisabled(2024, 5, "2024", false), false);
 });
 
-Deno.test("isMonthDisabled: start picker — disables months after end value", () => {
+Deno.test("isMonthDisabled: start picker - disables months after end value", () => {
   // end is "2024-06" = June (0-indexed month 5), start picker
   assertEquals(isMonthDisabled(2024, 5, "2024-06", true), false); // June == June => allowed
   assertEquals(isMonthDisabled(2024, 6, "2024-06", true), true);  // July > June => disabled
@@ -80,7 +80,7 @@ Deno.test("isMonthDisabled: start picker — disables months after end value", (
   assertEquals(isMonthDisabled(2025, 0, "2024-06", true), true);  // Jan 2025 > Jun 2024 => disabled
 });
 
-Deno.test("isMonthDisabled: end picker — disables months before start value", () => {
+Deno.test("isMonthDisabled: end picker - disables months before start value", () => {
   // start is "2024-06" = June (0-indexed month 5), end picker
   assertEquals(isMonthDisabled(2024, 5, "2024-06", false), false); // June == June => allowed
   assertEquals(isMonthDisabled(2024, 4, "2024-06", false), true);  // May < June => disabled

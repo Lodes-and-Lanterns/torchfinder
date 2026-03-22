@@ -2,7 +2,7 @@ import LZString from '../dependencies/lz-string.js';
 
 const STORAGE_KEY = 'torchfinder-lists';
 
-// Encoding
+// ENCODING
 ///////////
 
 // Encodes an ordered array of entry IDs to a versioned, URL-safe compressed string.
@@ -26,7 +26,7 @@ export function decodeListPayload(payload) {
   }
 }
 
-// Storage
+// STORAGE
 //////////
 
 export function getLists() {
@@ -97,7 +97,7 @@ export function listNameExists(name, excludeId = null) {
   );
 }
 
-// Export / Import
+// EXPORT / IMPORT
 //////////////////
 
 // Merges an incoming list array into localStorage.
@@ -124,7 +124,7 @@ export function importLists(incoming) {
   return count;
 }
 
-// Saved state
+// SAVED STATE
 //////////////
 
 // Compares the current in-memory list state against localStorage.

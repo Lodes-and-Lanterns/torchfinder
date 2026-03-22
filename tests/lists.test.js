@@ -20,7 +20,7 @@ function resetStorage() {
   localStorage.clear();
 }
 
-// encodeListPayload
+// ENCODE_LIST_PAYLOAD
 ////////////////////
 
 Deno.test('encodeListPayload: empty array returns "v1:"', () => {
@@ -51,7 +51,7 @@ Deno.test('encodeListPayload: single id round-trips', () => {
   assertEquals(decodeListPayload(encodeListPayload(ids)), ids);
 });
 
-// decodeListPayload
+// DECODE_LIST_PAYLOAD
 ////////////////////
 
 Deno.test('decodeListPayload: empty string returns []', () => {
@@ -99,7 +99,7 @@ Deno.test('encodeListPayload: compressed payload is shorter than raw joined IDs 
   assertEquals(encoded.slice(3).length < rawLength, true);
 });
 
-// generateListId
+// GENERATE_LIST_ID
 /////////////////
 
 Deno.test('generateListId: returns an 8-character alphanumeric string', () => {
@@ -113,7 +113,7 @@ Deno.test('generateListId: produces unique IDs across 20 calls', () => {
   assertEquals(ids.size, 20);
 });
 
-// localStorage CRUD
+// LOCAL_STORAGE CRUD
 ////////////////////
 
 Deno.test('getLists: returns [] when storage is empty', () => {
@@ -224,7 +224,7 @@ Deno.test('getRecentLists: respects n limit', () => {
   assertEquals(getRecentLists(3).length, 3);
 });
 
-// getListSavedState
+// GET_LIST_SAVED_STATE
 ////////////////////
 
 Deno.test('getListSavedState: returns "unsaved" when id is null', () => {
@@ -255,7 +255,7 @@ Deno.test('getListSavedState: order matters (different order = modified)', () =>
   assertEquals(getListSavedState('ord-test', ['b', 'a']), 'modified');
 });
 
-// clearAllLists
+// CLEAR_ALL_LISTS
 ////////////////
 
 Deno.test('clearAllLists: removes all lists from storage', () => {
@@ -272,7 +272,7 @@ Deno.test('clearAllLists: is a no-op when storage is already empty', () => {
   assertEquals(getLists(), []);
 });
 
-// importLists
+// IMPORT_LISTS
 //////////////
 
 Deno.test('importLists: returns 0 for non-array input', () => {
@@ -341,7 +341,7 @@ Deno.test('importLists: merges without affecting unrelated existing lists', () =
   assertEquals(getList('existing').name, 'Existing');
 });
 
-// listNameExists
+// LIST_NAME_EXISTS
 /////////////////
 
 Deno.test('listNameExists: returns false when storage is empty', () => {

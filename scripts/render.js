@@ -17,7 +17,7 @@ import {
 import { hasActiveFilters, applyFilters } from './filters.js';
 import { updateUrl } from './url.js';
 
-// Filter Sidebar
+// FILTER SIDEBAR
 /////////////////
 
 export const FILTER_TOP_N = 8;
@@ -354,7 +354,7 @@ function syncFilterGroupIndicators() {
   }
 }
 
-// Results
+// RESULTS
 //////////
 
 export function renderResults() {
@@ -710,7 +710,7 @@ export function row(label, value) {
   return `<tr><th scope="row">${escapeHtml(label)}</th><td>${escapeHtml(value)}</td></tr>`;
 }
 
-// Pagination
+// PAGINATION
 /////////////
 
 function renderPagination(totalPages) {
@@ -731,7 +731,7 @@ function renderPagination(totalPages) {
   );
 
   for (const p of pages) {
-    if (p === '…') {
+    if (p === '...') {
       items.push(
         `<li><span class="pagination-ellipsis" aria-hidden="true">&#x2026;</span></li>`,
       );
@@ -763,20 +763,20 @@ export function computePageNumbers(current, total) {
 
   const pages = [1];
 
-  if (current > 3) pages.push('…');
+  if (current > 3) pages.push('...');
 
   for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); ++i) {
     pages.push(i);
   }
 
-  if (current < total - 2) pages.push('…');
+  if (current < total - 2) pages.push('...');
 
   pages.push(total);
 
   return pages;
 }
 
-// Loading / Error States
+// LOADING / ERROR STATES
 /////////////////////////
 
 export function showLoading() {
@@ -808,8 +808,9 @@ export function enableControls() {
   });
 }
 
-// Pill / Card / Page interactions
+// PILL / CARD / PAGE INTERACTIONS
 //////////////////////////////////
+
 // Kept here (rather than handlers.js) to avoid circular imports: render
 // functions call these, and these call render functions.
 
@@ -874,7 +875,7 @@ export function onPageChange(page) {
   });
 }
 
-// List View
+// LIST VIEW
 ////////////
 
 function renderListView() {
@@ -1380,7 +1381,7 @@ function onAddToExistingList(entryId, listId, btn) {
 
     if (alreadyIn) {
       if (row) row.style.animation = 'list-row-flash-red 0.35s ease-in-out 2';
-      if (countEl) countEl.textContent = `(${count}) · already in list`;
+      if (countEl) countEl.textContent = `(${count}) - already in list`;
     } else {
       if (countEl) countEl.textContent = `(${count})`;
     }

@@ -47,7 +47,7 @@ function p(search) {
   return new URLSearchParams(search);
 }
 
-// buildUrlParams
+// BUILD_URL_PARAMS
 /////////////////
 
 Deno.test('buildUrlParams: default state produces empty params', () => {
@@ -326,7 +326,7 @@ Deno.test('buildUrlParams: list mode without name/description/id omits those key
   assertEquals(params.has('list-id'), false);
 });
 
-// parseUrlParams
+// PARSE_URL_PARAMS
 /////////////////
 
 Deno.test('parseUrlParams: empty params resets to default state', () => {
@@ -529,10 +529,10 @@ Deno.test('parseUrlParams: list mode + id restores directId too', () => {
   assertEquals(state.directId, 'entry-x');
 });
 
-// buildUrlParams / parseUrlParams round-trips
+// BUILD_URL_PARAMS / PARSE_URL_PARAMS ROUND-TRIPS
 //////////////////////////////////////////////
 
-Deno.test('round-trip: filter-mode state survives encode→decode', () => {
+Deno.test('round-trip: filter-mode state survives encode-decode', () => {
   resetState();
   state.query = 'dungeon';
   state.sort = 'date';
@@ -575,7 +575,7 @@ Deno.test('round-trip: filter-mode state survives encode→decode', () => {
   assertEquals(state.filters.dmax, '2024-12');
 });
 
-Deno.test('round-trip: list mode state survives encode→decode', () => {
+Deno.test('round-trip: list mode state survives encode-decode', () => {
   resetState();
   state.listMode = true;
   state.listEntries = ['adv-001', 'zine-99'];
@@ -594,7 +594,7 @@ Deno.test('round-trip: list mode state survives encode→decode', () => {
   assertEquals(state.listId, 'ff00ff00');
 });
 
-Deno.test('round-trip: directId mode state survives encode→decode', () => {
+Deno.test('round-trip: directId mode state survives encode-decode', () => {
   resetState();
   state.directId = 'target-entry';
 
@@ -606,7 +606,7 @@ Deno.test('round-trip: directId mode state survives encode→decode', () => {
   assertEquals(state.listMode, false);
 });
 
-Deno.test('round-trip: directId + list mode state survives encode→decode', () => {
+Deno.test('round-trip: directId + list mode state survives encode-decode', () => {
   resetState();
   state.directId = 'entry-x';
   state.listMode = true;
