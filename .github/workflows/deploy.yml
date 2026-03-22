@@ -31,10 +31,10 @@ jobs:
           deno-version: v2.x
 
       - name: Test
-        run: deno test tests/
+        run: deno task test
 
       - name: Build
-        run: deno run --allow-read --allow-write --allow-net build.ts
+        run: deno task build
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4

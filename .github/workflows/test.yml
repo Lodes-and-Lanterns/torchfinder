@@ -19,4 +19,4 @@ jobs:
           deno-version: v2.x
 
       - name: Test
-        run: deno test tests/
+        run: deno task test

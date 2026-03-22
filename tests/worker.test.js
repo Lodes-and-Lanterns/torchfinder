@@ -1,4 +1,4 @@
-import { assertEquals, assertStrictEquals } from "jsr:@std/assert";
+import { assertEquals, assertStrictEquals } from "@std/assert";
 import { processChunk, flushBuffer } from "../scripts/worker-utils.js";
 
 // PROCESS_CHUNK

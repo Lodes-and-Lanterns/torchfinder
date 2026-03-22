@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert";
+import { assertEquals } from "@std/assert";
 import { state } from "../scripts/state.js";
 import {
   hasActiveFilters,

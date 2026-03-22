@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "jsr:@std/assert";
+import { assert, assertEquals } from "@std/assert";
 import { state } from "../scripts/state.js";
 import { setCoverConsent } from "../scripts/consent.js";
 import {
