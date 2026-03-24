@@ -1,7 +1,7 @@
 import { state } from './state.js';
 import { encodeListPayload, decodeListPayload } from './lists.js';
 
-export function parseUrlParams(params = new URLSearchParams(window.location.search)) {
+export function parseUrlParams(params = new URLSearchParams(globalThis.location.search)) {
   const listPayload = params.get('list');
   const directId = params.get('id') || null;
 
@@ -137,7 +137,7 @@ export function updateUrl() {
   const params = buildUrlParams();
   const qs = params.toString();
   const newUrl = qs
-    ? `${window.location.pathname}?${qs}`
-    : window.location.pathname;
+    ? `${globalThis.location.pathname}?${qs}`
+    : globalThis.location.pathname;
   history.replaceState(null, '', newUrl);
 }

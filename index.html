@@ -27,7 +27,7 @@
   <script>
     (function () {
       var saved = localStorage.getItem('ll-theme');
-      var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      var theme = saved || (globalThis.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
       document.documentElement.setAttribute('data-theme', theme);
 
       function syncBtn(t) {

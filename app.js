@@ -37,7 +37,7 @@ async function init() {
   parseUrlParams();
 
   const sidebar = document.getElementById('filter-sidebar');
-  const isDesktop = () => window.matchMedia('(min-width: 801px)').matches;
+  const isDesktop = () => globalThis.matchMedia('(min-width: 801px)').matches;
 
   if (isDesktop()) {
     sidebar.removeAttribute('aria-hidden');
@@ -90,7 +90,7 @@ async function init() {
 
     try {
       if ('showSaveFilePicker' in window) {
-        const handle = await window.showSaveFilePicker({
+        const handle = await globalThis.showSaveFilePicker({
           suggestedName: 'torchfinder-lists.json',
           types: [{ description: 'JSON file', accept: { 'application/json': ['.json'] } }],
         });
@@ -173,10 +173,10 @@ async function init() {
     const rect = tag.getBoundingClientRect();
     const tRect = cardTooltip.getBoundingClientRect();
     const left = Math.max(8, Math.min(
-      rect.left + window.scrollX + rect.width / 2 - tRect.width / 2,
-      window.scrollX + window.innerWidth - tRect.width - 8,
+      rect.left + globalThis.scrollX + rect.width / 2 - tRect.width / 2,
+      globalThis.scrollX + globalThis.innerWidth - tRect.width - 8,
     ));
-    const top = rect.top + window.scrollY - tRect.height - 6;
+    const top = rect.top + globalThis.scrollY - tRect.height - 6;
     cardTooltip.style.left = left + 'px';
     cardTooltip.style.top = top + 'px';
   }
@@ -443,7 +443,7 @@ async function init() {
   });
 
   // Responsive: sync sidebar visibility on resize
-  const mq = window.matchMedia('(min-width: 801px)');
+  const mq = globalThis.matchMedia('(min-width: 801px)');
   mq.addEventListener('change', (e) => {
     if (e.matches) {
       // Desktop: always show, remove mobile state

@@ -194,8 +194,8 @@ export function createMonthPicker(inputEl, { isStart, getOtherValue, onSelect })
     // Adjust if it overflows the right edge
     requestAnimationFrame(() => {
       const pRect = popoverEl.getBoundingClientRect();
-      if (pRect.right > window.innerWidth - 8) {
-        popoverEl.style.left = Math.max(8, window.innerWidth - pRect.width - 8) + 'px';
+      if (pRect.right > globalThis.innerWidth - 8) {
+        popoverEl.style.left = Math.max(8, globalThis.innerWidth - pRect.width - 8) + 'px';
       }
     });
   }

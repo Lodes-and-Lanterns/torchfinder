@@ -531,7 +531,7 @@ function attachCardListeners(container) {
     card.querySelectorAll('.copy-entry-link-btn').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const url = `${window.location.origin}${window.location.pathname}?id=${encodeURIComponent(btn.dataset.id)}`;
+        const url = `${globalThis.location.origin}${globalThis.location.pathname}?id=${encodeURIComponent(btn.dataset.id)}`;
         navigator.clipboard.writeText(url).then(() => {
           const prev = btn.textContent;
           btn.textContent = 'Copied!';
@@ -866,12 +866,12 @@ export function onCardClick(id) {
 }
 
 export function onPageChange(page) {
-  const distanceFromBottom = document.documentElement.scrollHeight - window.scrollY - window.innerHeight;
+  const distanceFromBottom = document.documentElement.scrollHeight - globalThis.scrollY - globalThis.innerHeight;
   state.page = page;
   renderResults();
   requestAnimationFrame(() => {
-    const newScrollY = document.documentElement.scrollHeight - distanceFromBottom - window.innerHeight;
-    window.scrollTo({ top: Math.max(0, newScrollY), behavior: 'instant' });
+    const newScrollY = document.documentElement.scrollHeight - distanceFromBottom - globalThis.innerHeight;
+    globalThis.scrollTo({ top: Math.max(0, newScrollY), behavior: 'instant' });
   });
 }
 
@@ -978,7 +978,7 @@ function renderListView() {
   list.querySelectorAll('.list-entry-title[href]').forEach((link) => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
-      const params = new URLSearchParams(new URL(link.href, window.location.href).search);
+      const params = new URLSearchParams(new URL(link.href, globalThis.location.href).search);
       state.directId = params.get('id');
       renderResults();
     });
@@ -1243,7 +1243,7 @@ function onSaveList() {
 }
 
 function onCopyListUrl() {
-  navigator.clipboard.writeText(window.location.href).then(() => {
+  navigator.clipboard.writeText(globalThis.location.href).then(() => {
     const btn = document.getElementById('list-copy-url-btn');
     if (btn) {
       const prev = btn.textContent;
