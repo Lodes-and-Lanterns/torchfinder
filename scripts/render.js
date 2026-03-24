@@ -2,7 +2,7 @@ import { state, PAGE_SIZE } from './state.js';
 import { getCoverConsent } from './consent.js';
 import {
   getLists, getList, saveList, deleteList, touchList,
-  getRecentLists, generateListId, getListSavedState, listNameExists,
+  generateListId, getListSavedState, listNameExists,
 } from './lists.js';
 import {
   escapeHtml,
@@ -259,14 +259,17 @@ export function syncFilterControlStates() {
   document.getElementById('level-max').value = f.lmax !== null ? f.lmax : '';
   document.getElementById('party-min').value = f.pmin !== null ? f.pmin : '';
   document.getElementById('party-max').value = f.pmax !== null ? f.pmax : '';
+
   const fromInput = document.getElementById('date-from');
   if (fromInput && fromInput._monthPicker) {
     fromInput._monthPicker.setValue(f.dmin);
   }
+
   const toInput = document.getElementById('date-to');
   if (toInput && toInput._monthPicker) {
     toInput._monthPicker.setValue(f.dmax);
   }
+
   document.getElementById('search-input').value = state.query;
   document.getElementById('sort-select').value = state.sort;
 

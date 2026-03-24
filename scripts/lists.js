@@ -73,13 +73,6 @@ export function touchList(id) {
   }
 }
 
-// Returns up to n lists sorted by most recently accessed.
-export function getRecentLists(n = 5) {
-  return getLists()
-    .sort((a, b) => (b.lastAccessedAt || '').localeCompare(a.lastAccessedAt || ''))
-    .slice(0, n);
-}
-
 export function generateListId() {
   return Math.random().toString(36).slice(2, 10);
 }

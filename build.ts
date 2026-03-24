@@ -72,7 +72,7 @@ function generateFeed(adventures: Adventure[]): string {
       : "";
 
     return `    <item>
-      <title>${xmlEscape(entry.title ?? "")}</title>
+      <title>${xmlEscape(entry.title ?? "")} — Lodes &amp; Lanterns</title>
       <description>${xmlEscape(description)}</description>
       <author>${xmlEscape(authorStr)}</author>
       <link>${xmlEscape(link)}</link>
@@ -84,7 +84,7 @@ function generateFeed(adventures: Adventure[]): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
   <channel>
-    <title>Torchfinder</title>
+    <title>Torchfinder — Lodes &amp; Lanterns</title>
     <description>Find official and third-party Shadowdark content, including adventures, supplements, and zines.</description>
     <link>${SITE_URL}</link>
     <language>en</language>

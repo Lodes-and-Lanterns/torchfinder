@@ -7,7 +7,6 @@ import {
   saveList,
   deleteList,
   touchList,
-  getRecentLists,
   generateListId,
   getListSavedState,
   clearAllLists,
@@ -195,33 +194,6 @@ Deno.test('touchList: no-op for unknown id', () => {
   resetStorage();
   touchList('ghost');
   assertEquals(getLists().length, 0);
-});
-
-Deno.test('getRecentLists: returns lists sorted by lastAccessedAt descending', () => {
-  resetStorage();
-  saveList({ id: 'a', name: 'A', entries: [] });
-  saveList({ id: 'b', name: 'B', entries: [] });
-  saveList({ id: 'c', name: 'C', entries: [] });
-  // Override timestamps directly in storage
-  const lists = getLists();
-  const byId = Object.fromEntries(lists.map((l) => [l.id, l]));
-  byId['a'].lastAccessedAt = '2024-01-01T00:00:00.000Z';
-  byId['b'].lastAccessedAt = '2024-03-01T00:00:00.000Z';
-  byId['c'].lastAccessedAt = '2024-02-01T00:00:00.000Z';
-  localStorage.setItem('torchfinder-lists', JSON.stringify(Object.values(byId)));
-
-  const recent = getRecentLists(5);
-  assertEquals(recent[0].id, 'b');
-  assertEquals(recent[1].id, 'c');
-  assertEquals(recent[2].id, 'a');
-});
-
-Deno.test('getRecentLists: respects n limit', () => {
-  resetStorage();
-  for (let i = 0; i < 10; ++i) {
-    saveList({ id: `l${i}`, name: `List ${i}`, entries: [] });
-  }
-  assertEquals(getRecentLists(3).length, 3);
 });
 
 // GET_LIST_SAVED_STATE

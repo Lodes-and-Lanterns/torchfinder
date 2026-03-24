@@ -237,8 +237,7 @@ export function createMonthPicker(inputEl, { isStart, getOtherValue, onSelect })
   // Event handlers
   /////////////////
 
-  function onPopoverFocusOut(e) {
-    // Close when focus moves completely outside the popover (and not to the trigger input).
+  function onPopoverFocusOut(e) { // Close when focus moves completely outside the popover (and not to the trigger input).
     const target = e.relatedTarget;
     if (!target || (!popoverEl.contains(target) && target !== inputEl)) {
       close();

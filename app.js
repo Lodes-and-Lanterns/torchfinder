@@ -33,7 +33,7 @@ import {
   trapFocus,
 } from './scripts/handlers.js';
 
-async function init() {
+function init() {
   parseUrlParams();
 
   const sidebar = document.getElementById('filter-sidebar');
@@ -97,8 +97,7 @@ async function init() {
         const writable = await handle.createWritable();
         await writable.write(json);
         await writable.close();
-      } else {
-        // Fallback for Firefox: silent download to default downloads folder
+      } else { // Fallback for Firefox: silent download to default downloads folder
         const a = document.createElement('a');
         a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(json);
         a.download = 'torchfinder-lists.json';
@@ -386,8 +385,19 @@ async function init() {
   });
 
   // Init: publication date range pickers (custom month+year picker)
-  let toPicker;
-  const fromPicker = createMonthPicker(document.getElementById('date-from'), {
+
+  const toPicker = createMonthPicker(document.getElementById('date-to'), {
+    isStart: false,
+    getOtherValue: () => state.filters.dmin,
+    onSelect(value) {
+      state.filters.dmax = value;
+      state.page = 1;
+      applyFilters();
+      renderResults();
+    },
+  });
+
+  createMonthPicker(document.getElementById('date-from'), { // from picker
     isStart: true,
     getOtherValue: () => state.filters.dmax,
     onSelect(value) {
@@ -397,17 +407,6 @@ async function init() {
         state.filters.dmax = null;
         if (toPicker) toPicker.clear();
       }
-      state.page = 1;
-      applyFilters();
-      renderResults();
-    },
-  });
-
-  toPicker = createMonthPicker(document.getElementById('date-to'), {
-    isStart: false,
-    getOtherValue: () => state.filters.dmin,
-    onSelect(value) {
-      state.filters.dmax = value;
       state.page = 1;
       applyFilters();
       renderResults();
