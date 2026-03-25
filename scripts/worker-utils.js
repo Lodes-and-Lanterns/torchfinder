@@ -14,13 +14,15 @@
  * @returns {{ buffer: string, entries: object[] }}
  */
 export function processChunk(buffer, chunk) {
-  const lines = (buffer + chunk).split('\n');
+  const lines = (buffer + chunk).split("\n");
   const newBuffer = lines.pop(); // last element may be incomplete
   const entries = [];
+
   for (const line of lines) {
     if (!line.trim()) continue;
     entries.push(JSON.parse(line));
   }
+
   return { buffer: newBuffer, entries };
 }
 

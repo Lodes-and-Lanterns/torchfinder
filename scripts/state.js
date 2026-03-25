@@ -1,15 +1,15 @@
-export const DATA_URL = 'dist/torchfinder-dataset.jsonl';
+export const DATA_URL = "dist/torchfinder-dataset.jsonl";
 export const PAGE_SIZE = 25;
 export const SEARCH_DEBOUNCE_MS = 200;
-export const SITE_URL = 'https://torchfinder.lodesandlanterns.com';
+export const SITE_URL = "https://torchfinder.lodesandlanterns.com";
 
 export const state = {
   data: null,
   filtered: [],
-  query: '',
+  query: "",
   filters: {
     categories: [],
-    systems: ['Shadowdark'],
+    systems: ["Shadowdark"],
     settings: [],
     envs: [],
     themes: [],
@@ -30,15 +30,15 @@ export const state = {
     dmin: null,
     dmax: null,
   },
-  sort: 'title',
+  sort: "title",
   sortReverse: false,
   page: 1,
   directId: null,
   expandedCardId: null,
   listMode: false,
   listId: null,
-  listName: '',
-  listDescription: '',
+  listName: "",
+  listDescription: "",
   listEntries: [],
   listSynced: false,
 };

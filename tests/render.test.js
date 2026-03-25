@@ -1,15 +1,18 @@
 import { assert, assertEquals } from "@std/assert";
+
 import { state } from "../scripts/state.js";
+
 import { setCoverConsent } from "../scripts/consent.js";
+
 import {
+  buildExpandedHtml,
   collectDistinctValues,
   collectTopValues,
-  filterHiddenCount,
-  FILTER_TOP_N,
-  PUBLISHER_AUTHOR_TOP_N,
   computePageNumbers,
+  FILTER_TOP_N,
+  filterHiddenCount,
+  PUBLISHER_AUTHOR_TOP_N,
   renderCardHtml,
-  buildExpandedHtml,
   row,
 } from "../scripts/render.js";
 
@@ -192,52 +195,67 @@ Deno.test("computePageNumbers: window around current is correct", () => {
 
 Deno.test("collectDistinctValues: non-array field returns sorted unique values", () => {
   resetState();
+
   state.data = [
     makeEntry({ pub: "Lantern Press" }),
     makeEntry({ pub: "Iron Gate" }),
     makeEntry({ pub: "Lantern Press" }), // duplicate
   ];
+
   const vals = collectDistinctValues("pub", false);
+
   assertEquals(vals, ["Iron Gate", "Lantern Press"]);
 });
 
 Deno.test("collectDistinctValues: non-array field skips null", () => {
   resetState();
+
   state.data = [
     makeEntry({ pub: "Lantern Press" }),
     makeEntry({ pub: null }),
   ];
+
   const vals = collectDistinctValues("pub", false);
+
   assertEquals(vals, ["Lantern Press"]);
 });
 
 Deno.test("collectDistinctValues: array field flattens and deduplicates", () => {
   resetState();
+
   state.data = [
     makeEntry({ systems: ["Shadowdark", "Soulblight"] }),
     makeEntry({ systems: ["Soulblight"] }),
     makeEntry({ systems: ["System-Agnostic"] }),
   ];
+
   const vals = collectDistinctValues("systems", true);
+
   assertEquals(vals, ["Shadowdark", "Soulblight", "System-Agnostic"]);
 });
 
 Deno.test("collectDistinctValues: returns values sorted alphabetically", () => {
   resetState();
+
   state.data = [
     makeEntry({ themes: ["Survival", "Horror", "Exploration"] }),
   ];
+
   const vals = collectDistinctValues("themes", true);
+
   assertEquals(vals, ["Exploration", "Horror", "Survival"]);
 });
 
 Deno.test("collectDistinctValues: empty array field yields no values", () => {
   resetState();
+
   state.data = [
     makeEntry({ envs: [] }),
     makeEntry({ envs: [] }),
   ];
+
   const vals = collectDistinctValues("envs", true);
+
   assertEquals(vals, []);
 });
 
@@ -250,6 +268,7 @@ Deno.test("collectTopValues: FILTER_TOP_N is 8", () => {
 
 Deno.test("collectTopValues: returns most frequent non-array values", () => {
   resetState();
+
   state.data = [
     makeEntry({ pub: "A" }),
     makeEntry({ pub: "B" }),
@@ -258,41 +277,52 @@ Deno.test("collectTopValues: returns most frequent non-array values", () => {
     makeEntry({ pub: "A" }),
     makeEntry({ pub: "B" }),
   ];
+
   const top = collectTopValues("pub", false, 2);
+
   assertEquals(top, ["A", "B"]);
 });
 
 Deno.test("collectTopValues: returns most frequent array values", () => {
   resetState();
+
   state.data = [
     makeEntry({ themes: ["Horror", "Exploration"] }),
     makeEntry({ themes: ["Horror", "Survival"] }),
     makeEntry({ themes: ["Exploration"] }),
   ];
+
   // Horror: 2, Exploration: 2, Survival: 1
   // ties broken alphabetically: Exploration < Horror
   const top = collectTopValues("themes", true, 2);
+
   assertEquals(top, ["Exploration", "Horror"]);
 });
 
 Deno.test("collectTopValues: ties broken alphabetically", () => {
   resetState();
+
   state.data = [
     makeEntry({ themes: ["zebra", "apple", "mango"] }),
   ];
+
   // all tied at 1; alphabetical order: apple, mango, zebra
   const top = collectTopValues("themes", true, 2);
+
   assertEquals(top, ["apple", "mango"]);
 });
 
 Deno.test("collectTopValues: fewer distinct values than n returns all", () => {
   resetState();
+
   state.data = [
     makeEntry({ categories: ["Adventure"] }),
     makeEntry({ categories: ["Supplement"] }),
     makeEntry({ categories: ["Adventure"] }),
   ];
+
   const top = collectTopValues("categories", true, 8);
+
   assertEquals(top.length, 2);
   assertEquals(top[0], "Adventure"); // higher frequency first
   assertEquals(top[1], "Supplement");
@@ -300,23 +330,29 @@ Deno.test("collectTopValues: fewer distinct values than n returns all", () => {
 
 Deno.test("collectTopValues: respects n limit", () => {
   resetState();
+
   state.data = [
     makeEntry({ themes: ["a", "b", "c", "d", "e"] }),
     makeEntry({ themes: ["a", "b", "c", "d"] }),
     makeEntry({ themes: ["a", "b", "c"] }),
   ];
+
   const top = collectTopValues("themes", true, 3);
+
   assertEquals(top.length, 3);
 });
 
 Deno.test("collectTopValues: skips null and empty non-array values", () => {
   resetState();
+
   state.data = [
     makeEntry({ pub: "Real Publisher" }),
     makeEntry({ pub: null }),
     makeEntry({ pub: "" }),
   ];
+
   const top = collectTopValues("pub", false, 5);
+
   assertEquals(top, ["Real Publisher"]);
 });
 
@@ -354,7 +390,11 @@ Deno.test("renderCardHtml: HTML-escapes title", () => {
 });
 
 Deno.test("renderCardHtml: contains author byline when authors present", () => {
-  const html = renderCardHtml(makeEntry({ authors: ["S. R. Holloway"] }), false);
+  const html = renderCardHtml(
+    makeEntry({ authors: ["S. R. Holloway"] }),
+    false,
+  );
+
   assert(html.includes("S. R. Holloway"));
   assert(html.includes("card-byline"));
 });
@@ -409,6 +449,7 @@ Deno.test("renderCardHtml: Upcoming tag present for future entries", () => {
     makeEntry({ date: "2099-01-01" }),
     false,
   );
+
   assert(html.includes("card-tag-upcoming"));
   assert(html.includes("Upcoming"));
 });
@@ -418,6 +459,7 @@ Deno.test("renderCardHtml: Upcoming tag absent for past entries", () => {
     makeEntry({ date: "2020-01-01" }),
     false,
   );
+
   assert(!html.includes("card-tag-upcoming"));
 });
 
@@ -467,7 +509,11 @@ Deno.test("renderCardHtml: card-expanded div always present (shown/hidden via CS
 
 // desc renders in renderCardHtml (.card-description-snippet), not here.
 Deno.test("buildExpandedHtml: does not render description (handled in renderCardHtml)", () => {
-  const html = buildExpandedHtml(makeEntry({ desc: "Forty undead creatures." }), false);
+  const html = buildExpandedHtml(
+    makeEntry({ desc: "Forty undead creatures." }),
+    false,
+  );
+
   assert(!html.includes("card-description-full"));
   assert(!html.includes("card-description-snippet"));
 });
@@ -500,6 +546,7 @@ Deno.test("buildExpandedHtml: level range row absent when null", () => {
     makeEntry({ lmin: null, lmax: null }),
     false,
   );
+
   assert(!html.includes("Level range"));
 });
 
@@ -519,6 +566,7 @@ Deno.test("buildExpandedHtml: upcoming badge present for future dates", () => {
     makeEntry({ date: "2099-01-01" }),
     true, // upcoming=true passed in
   );
+
   assert(html.includes("badge upcoming"));
 });
 
@@ -527,14 +575,21 @@ Deno.test("buildExpandedHtml: no upcoming badge for past dates", () => {
     makeEntry({ date: "2020-01-01" }),
     false,
   );
+
   assert(!html.includes("badge upcoming"));
 });
 
 Deno.test("buildExpandedHtml: links section present when links provided", () => {
   const entry = makeEntry({
-    links: [{ title: "Buy on DriveThru", url: "https://example.com", language: "en" }],
+    links: [{
+      title: "Buy on DriveThru",
+      url: "https://example.com",
+      language: "en",
+    }],
   });
+
   const html = buildExpandedHtml(entry, false);
+
   assert(html.includes("Links"));
   assert(html.includes("Buy on DriveThru"));
   assert(html.includes("https://example.com"));
@@ -547,26 +602,45 @@ Deno.test("buildExpandedHtml: links section absent when no links", () => {
 
 Deno.test("buildExpandedHtml: non-English link gets language badge", () => {
   const entry = makeEntry({
-    links: [{ title: "Descargar", url: "https://example.com/es", language: "es" }],
+    links: [{
+      title: "Descargar",
+      url: "https://example.com/es",
+      language: "es",
+    }],
   });
+
   const html = buildExpandedHtml(entry, false);
+
   assert(html.includes("lang-badge"));
   assert(html.includes("Spanish"));
 });
 
 Deno.test("buildExpandedHtml: English link does not get language badge", () => {
   const entry = makeEntry({
-    links: [{ title: "Download", url: "https://example.com/en", language: "en" }],
+    links: [{
+      title: "Download",
+      url: "https://example.com/en",
+      language: "en",
+    }],
   });
+
   const html = buildExpandedHtml(entry, false);
+
   assert(!html.includes("lang-badge"));
 });
 
 Deno.test("buildExpandedHtml: link type description shown with stylized type", () => {
   const entry = makeEntry({
-    links: [{ title: "Buy it", url: "https://example.com", language: "en", type: "ebook" }],
+    links: [{
+      title: "Buy it",
+      url: "https://example.com",
+      language: "en",
+      type: "ebook",
+    }],
   });
+
   const html = buildExpandedHtml(entry, false);
+
   assert(html.includes("link-type-desc"));
   assert(html.includes("eBook"));
 });
@@ -575,34 +649,60 @@ Deno.test("buildExpandedHtml: link type description absent when type is absent",
   const entry = makeEntry({
     links: [{ title: "Buy it", url: "https://example.com", language: "en" }],
   });
+
   const html = buildExpandedHtml(entry, false);
+
   assert(!html.includes("link-type-desc"));
   assert(!html.includes("eBook"));
 });
 
 Deno.test("buildExpandedHtml: link pricing badge shown for each link", () => {
   const entry = makeEntry({
-    links: [{ title: "Get it", url: "https://example.com", language: "en", type: "ebook", pricing: "free" }],
+    links: [{
+      title: "Get it",
+      url: "https://example.com",
+      language: "en",
+      type: "ebook",
+      pricing: "free",
+    }],
   });
+
   const html = buildExpandedHtml(entry, false);
+
   assert(html.includes("link-pricing-badge"));
   assert(html.includes("Free"));
 });
 
 Deno.test("buildExpandedHtml: link pricing badge shows Paid label", () => {
   const entry = makeEntry({
-    links: [{ title: "Buy it", url: "https://example.com", language: "en", type: "ebook", pricing: "paid" }],
+    links: [{
+      title: "Buy it",
+      url: "https://example.com",
+      language: "en",
+      type: "ebook",
+      pricing: "paid",
+    }],
   });
+
   const html = buildExpandedHtml(entry, false);
+
   assert(html.includes("link-pricing-badge"));
   assert(html.includes("Paid"));
 });
 
 Deno.test("buildExpandedHtml: link pricing badge shows PWYW label", () => {
   const entry = makeEntry({
-    links: [{ title: "Download", url: "https://example.com", language: "en", type: "ebook", pricing: "pwyw" }],
+    links: [{
+      title: "Download",
+      url: "https://example.com",
+      language: "en",
+      type: "ebook",
+      pricing: "pwyw",
+    }],
   });
+
   const html = buildExpandedHtml(entry, false);
+
   assert(html.includes("link-pricing-badge"));
   assert(html.includes("PWYW"));
 });
@@ -610,17 +710,35 @@ Deno.test("buildExpandedHtml: link pricing badge shows PWYW label", () => {
 Deno.test("buildExpandedHtml: different links show different pricing badges", () => {
   const entry = makeEntry({
     links: [
-      { title: "Free PDF", url: "https://example.com/free", language: "en", type: "ebook", pricing: "free" },
-      { title: "Buy Print", url: "https://example.com/print", language: "en", type: "print", pricing: "paid" },
+      {
+        title: "Free PDF",
+        url: "https://example.com/free",
+        language: "en",
+        type: "ebook",
+        pricing: "free",
+      },
+      {
+        title: "Buy Print",
+        url: "https://example.com/print",
+        language: "en",
+        type: "print",
+        pricing: "paid",
+      },
     ],
   });
+
   const html = buildExpandedHtml(entry, false);
+
   assert(html.includes("Free"));
   assert(html.includes("Paid"));
 });
 
 Deno.test("buildExpandedHtml: character_options row present when set", () => {
-  const html = buildExpandedHtml(makeEntry({ character_options: ["Witch", "Warlock"] }), false);
+  const html = buildExpandedHtml(
+    makeEntry({ character_options: ["Witch", "Warlock"] }),
+    false,
+  );
+
   assert(html.includes("Character Options"));
   assert(html.includes("Witch"));
   assert(html.includes("Warlock"));
@@ -641,9 +759,15 @@ Deno.test("buildExpandedHtml: included_in section uses id as label when state.da
 
 Deno.test("buildExpandedHtml: included_in section resolves title from state.data", () => {
   resetState();
-  state.data = [{ id: "shadows-and-steel-zine-1", title: "Shadows & Steel #1" }];
+
+  state.data = [{
+    id: "shadows-and-steel-zine-1",
+    title: "Shadows & Steel #1",
+  }];
+
   const entry = makeEntry({ included_in: ["shadows-and-steel-zine-1"] });
   const html = buildExpandedHtml(entry, false);
+
   assert(html.includes("Included in"));
   assert(html.includes("Shadows &amp; Steel #1"));
 });
@@ -683,23 +807,40 @@ Deno.test("buildExpandedHtml: report link encodes entry id in URL", () => {
 
 Deno.test("renderCardHtml: cover not rendered without consent", () => {
   localStorage.removeItem("tf-cover-consent");
-  const html = renderCardHtml(makeEntry({ cover: "https://example.com/cover.jpg" }), false);
+
+  const html = renderCardHtml(
+    makeEntry({ cover: "https://example.com/cover.jpg" }),
+    false,
+  );
+
   assert(!html.includes("card-cover"));
   assert(!html.includes("example.com/cover.jpg"));
 });
 
 Deno.test("renderCardHtml: cover not rendered when consent is denied", () => {
   setCoverConsent("denied");
-  const html = renderCardHtml(makeEntry({ cover: "https://example.com/cover.jpg" }), false);
+
+  const html = renderCardHtml(
+    makeEntry({ cover: "https://example.com/cover.jpg" }),
+    false,
+  );
+
   assert(!html.includes("card-cover"));
+
   localStorage.removeItem("tf-cover-consent");
 });
 
 Deno.test("renderCardHtml: cover rendered when consent is granted", () => {
   setCoverConsent("granted");
-  const html = renderCardHtml(makeEntry({ cover: "https://example.com/cover.jpg" }), false);
+
+  const html = renderCardHtml(
+    makeEntry({ cover: "https://example.com/cover.jpg" }),
+    false,
+  );
+
   assert(html.includes("card-cover"));
   assert(html.includes("example.com/cover.jpg"));
+
   localStorage.removeItem("tf-cover-consent");
 });
 
@@ -754,14 +895,18 @@ Deno.test("buildExpandedHtml: children section label is 'Includes'", () => {
 
 Deno.test("buildExpandedHtml: Links section appears after Includes section", () => {
   resetState();
+
   state.data = [{ id: "child-1", title: "Child" }];
+
   const entry = makeEntry({
     children: ["child-1"],
     links: [{ title: "Buy it", url: "https://example.com", language: "en" }],
   });
+
   const html = buildExpandedHtml(entry, false);
   const includesIdx = html.indexOf("Includes");
   const linksIdx = html.indexOf("Links");
+
   assert(includesIdx !== -1);
   assert(linksIdx !== -1);
   assert(linksIdx > includesIdx);

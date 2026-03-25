@@ -1,10 +1,11 @@
 import { assertEquals } from "@std/assert";
+
 import {
+  formatDisplay,
+  formatYearMonth,
+  isMonthDisabled,
   MONTH_NAMES,
   parseYearMonth,
-  formatYearMonth,
-  formatDisplay,
-  isMonthDisabled,
 } from "../scripts/month-picker.js";
 
 // PARSE_YEAR_MONTH
@@ -24,12 +25,12 @@ Deno.test("parseYearMonth: null / empty / non-string returns null", () => {
 });
 
 Deno.test("parseYearMonth: invalid formats return null", () => {
-  assertEquals(parseYearMonth("2024"), null);           // year only
-  assertEquals(parseYearMonth("2024-1"), null);          // single-digit month
-  assertEquals(parseYearMonth("2024-00"), null);         // month 0 is invalid
-  assertEquals(parseYearMonth("2024-13"), null);         // month > 12 invalid
-  assertEquals(parseYearMonth("24-01"), null);           // 2-digit year
-  assertEquals(parseYearMonth("2024-01-15"), null);      // full date string
+  assertEquals(parseYearMonth("2024"), null); // year only
+  assertEquals(parseYearMonth("2024-1"), null); // single-digit month
+  assertEquals(parseYearMonth("2024-00"), null); // month 0 is invalid
+  assertEquals(parseYearMonth("2024-13"), null); // month > 12 invalid
+  assertEquals(parseYearMonth("24-01"), null); // 2-digit year
+  assertEquals(parseYearMonth("2024-01-15"), null); // full date string
   assertEquals(parseYearMonth("not-a-date"), null);
 });
 
@@ -75,22 +76,22 @@ Deno.test("isMonthDisabled: invalid otherValue => never disabled", () => {
 Deno.test("isMonthDisabled: start picker - disables months after end value", () => {
   // end is "2024-06" = June (0-indexed month 5), start picker
   assertEquals(isMonthDisabled(2024, 5, "2024-06", true), false); // June == June => allowed
-  assertEquals(isMonthDisabled(2024, 6, "2024-06", true), true);  // July > June => disabled
+  assertEquals(isMonthDisabled(2024, 6, "2024-06", true), true); // July > June => disabled
   assertEquals(isMonthDisabled(2024, 4, "2024-06", true), false); // May < June => allowed
-  assertEquals(isMonthDisabled(2025, 0, "2024-06", true), true);  // Jan 2025 > Jun 2024 => disabled
+  assertEquals(isMonthDisabled(2025, 0, "2024-06", true), true); // Jan 2025 > Jun 2024 => disabled
 });
 
 Deno.test("isMonthDisabled: end picker - disables months before start value", () => {
   // start is "2024-06" = June (0-indexed month 5), end picker
   assertEquals(isMonthDisabled(2024, 5, "2024-06", false), false); // June == June => allowed
-  assertEquals(isMonthDisabled(2024, 4, "2024-06", false), true);  // May < June => disabled
+  assertEquals(isMonthDisabled(2024, 4, "2024-06", false), true); // May < June => disabled
   assertEquals(isMonthDisabled(2024, 6, "2024-06", false), false); // July > June => allowed
   assertEquals(isMonthDisabled(2023, 11, "2024-06", false), true); // Dec 2023 < Jun 2024 => disabled
 });
 
 Deno.test("isMonthDisabled: cross-year boundary", () => {
   // start picker, end is 2023-01
-  assertEquals(isMonthDisabled(2024, 0, "2023-01", true), true);  // 2024-01 > 2023-01
+  assertEquals(isMonthDisabled(2024, 0, "2023-01", true), true); // 2024-01 > 2023-01
   assertEquals(isMonthDisabled(2022, 11, "2023-01", true), false); // 2022-12 < 2023-01
 
   // end picker, start is 2023-01

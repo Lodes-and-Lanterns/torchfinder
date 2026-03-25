@@ -1,15 +1,16 @@
 import { assert, assertEquals } from "@std/assert";
+
 import {
   debounce,
   escapeHtml,
-  slugToLabel,
-  langName,
-  LANGUAGE_NAMES,
-  formatLevelRange,
-  formatPartySize,
   formatDate,
   formatDateShort,
+  formatLevelRange,
+  formatPartySize,
   isUpcoming,
+  langName,
+  LANGUAGE_NAMES,
+  slugToLabel,
 } from "../scripts/utils.js";
 
 // ESCAPE_HTML
@@ -40,7 +41,10 @@ Deno.test("escapeHtml: plain text is unchanged", () => {
 });
 
 Deno.test("escapeHtml: multiple special chars in one string", () => {
-  assertEquals(escapeHtml('<a href="x&y">'), "&lt;a href=&quot;x&amp;y&quot;&gt;");
+  assertEquals(
+    escapeHtml('<a href="x&y">'),
+    "&lt;a href=&quot;x&amp;y&quot;&gt;",
+  );
 });
 
 // SLUG_TO_LABEL
@@ -233,10 +237,17 @@ Deno.test({
   sanitizeOps: false,
   async fn() {
     let count = 0;
-    const fn = debounce(() => { ++count; }, 30);
+
+    const fn = debounce(() => {
+      ++count;
+    }, 30);
+
     fn();
+
     assertEquals(count, 0, "should not fire synchronously");
+
     await new Promise((r) => setTimeout(r, 70));
+
     assertEquals(count, 1, "should fire exactly once after the delay");
   },
 });
@@ -246,11 +257,17 @@ Deno.test({
   sanitizeOps: false,
   async fn() {
     let count = 0;
-    const fn = debounce(() => { ++count; }, 40);
+
+    const fn = debounce(() => {
+      ++count;
+    }, 40);
+
     fn();
     fn();
     fn();
+
     await new Promise((r) => setTimeout(r, 90));
+
     assertEquals(count, 1);
   },
 });
@@ -260,11 +277,17 @@ Deno.test({
   sanitizeOps: false,
   async fn() {
     let lastArg = null;
-    const fn = debounce((v) => { lastArg = v; }, 40);
+
+    const fn = debounce((v) => {
+      lastArg = v;
+    }, 40);
+
     fn("first");
     fn("second");
     fn("third");
+
     await new Promise((r) => setTimeout(r, 90));
+
     assertEquals(lastArg, "third");
   },
 });

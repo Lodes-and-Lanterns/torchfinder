@@ -1,11 +1,11 @@
-import { state } from './state.js';
-import { isUpcoming } from './utils.js';
+import { state } from "./state.js";
+import { isUpcoming } from "./utils.js";
 
 export function hasActiveFilters() {
   const f = state.filters;
 
   return (
-    state.query !== '' ||
+    state.query !== "" ||
     f.categories.length > 0 ||
     f.systems.length > 0 ||
     f.settings.length > 0 ||
@@ -34,10 +34,10 @@ export function matchesText(entry, query) {
   const q = query.toLowerCase();
 
   return (
-    (entry.title || '').toLowerCase().includes(q) ||
-    (entry.desc || '').toLowerCase().includes(q) ||
+    (entry.title || "").toLowerCase().includes(q) ||
+    (entry.desc || "").toLowerCase().includes(q) ||
     (entry.authors || []).some((a) => a.toLowerCase().includes(q)) ||
-    (entry.pub || '').toLowerCase().includes(q) ||
+    (entry.pub || "").toLowerCase().includes(q) ||
     (entry.character_options || []).some((c) => c.toLowerCase().includes(q))
   );
 }
@@ -45,14 +45,20 @@ export function matchesText(entry, query) {
 // Normalises a date string (YYYY-MM-DD, YYYY-MM, or YYYY) to YYYY-MM for comparison.
 function normDateToMonth(d) {
   if (!d) return null;
-  const parts = d.split('-');
+  const parts = d.split("-");
   return parts.length >= 2 ? `${parts[0]}-${parts[1]}` : `${parts[0]}-01`;
 }
 
 // Returns true if the entry's range overlaps with the filter range.
 // If either endpoint is null on the entry, treat as unspecified.
 // If no filter is active, always return true.
-export function rangesOverlap(entryMin, entryMax, filterMin, filterMax, excludeUnspecified) {
+export function rangesOverlap(
+  entryMin,
+  entryMax,
+  filterMin,
+  filterMax,
+  excludeUnspecified,
+) {
   const hasEntry = entryMin !== null || entryMax !== null;
 
   // Entry has no range data: exclude if requested, otherwise include.
@@ -87,16 +93,16 @@ export function applyFilters() {
   const f = state.filters;
 
   const arrayFilterDefs = [
-    { key: 'categories', isArray: true },
-    { key: 'pricings', isArray: true },
-    { key: 'systems', isArray: true },
-    { key: 'settings', isArray: true },
-    { key: 'envs', isArray: true },
-    { key: 'themes', isArray: true },
-    { key: 'languages', isArray: true },
-    { key: 'pub', isArray: false },
-    { key: 'authors', isArray: true },
-    { key: 'character_options', isArray: true },
+    { key: "categories", isArray: true },
+    { key: "pricings", isArray: true },
+    { key: "systems", isArray: true },
+    { key: "settings", isArray: true },
+    { key: "envs", isArray: true },
+    { key: "themes", isArray: true },
+    { key: "languages", isArray: true },
+    { key: "pub", isArray: false },
+    { key: "authors", isArray: true },
+    { key: "character_options", isArray: true },
   ];
 
   state.filtered = state.data.filter((entry) => {
@@ -106,17 +112,22 @@ export function applyFilters() {
     // Taxonomy array filters: OR within field
     for (const { key, isArray } of arrayFilterDefs) {
       const selected = f[key];
+
       if (!selected.length) continue;
+
       const entryVals = isArray
         ? entry[key] || []
         : entry[key] != null
-          ? [entry[key]]
-          : [];
+        ? [entry[key]]
+        : [];
+
       if (!selected.some((v) => entryVals.includes(v))) return false;
     }
 
     // Has character options toggle
-    if (f.hasCharacterOptions && !(entry.character_options || []).length) return false;
+    if (f.hasCharacterOptions && !(entry.character_options || []).length) {
+      return false;
+    }
 
     // Official-only toggle
     if (f.official && !entry.official) return false;
@@ -149,6 +160,7 @@ export function applyFilters() {
     // Publication date range
     if (f.dmin !== null || f.dmax !== null) {
       const entryMonth = normDateToMonth(entry.date);
+
       if (
         entryMonth === null ||
         (f.dmin !== null && entryMonth < f.dmin) ||
@@ -167,19 +179,17 @@ export function sortFiltered() {
   const arr = state.filtered;
 
   switch (state.sort) {
-    case 'title':
+    case "title":
       _shuffledOrder = null;
-      arr.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+      arr.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
       break;
 
-    case 'date':
+    case "date":
       _shuffledOrder = null;
-      arr.sort((a, b) =>
-        (a.date || '').localeCompare(b.date || ''),
-      );
+      arr.sort((a, b) => (a.date || "").localeCompare(b.date || ""));
       break;
 
-    case 'pages':
+    case "pages":
       _shuffledOrder = null;
       arr.sort((a, b) => {
         const pa = a.pages != null ? a.pages : Infinity;
@@ -188,7 +198,7 @@ export function sortFiltered() {
       });
       break;
 
-    case 'level':
+    case "level":
       _shuffledOrder = null;
       arr.sort((a, b) => {
         const la = a.lmin != null ? a.lmin : Infinity;
@@ -197,16 +207,20 @@ export function sortFiltered() {
       });
       break;
 
-    case 'shuffle':
+    case "shuffle":
       if (!_shuffledOrder) {
         _shuffledOrder = [...arr];
         for (let i = _shuffledOrder.length - 1; i > 0; --i) {
           const j = Math.floor(Math.random() * (i + 1));
-          [_shuffledOrder[i], _shuffledOrder[j]] = [_shuffledOrder[j], _shuffledOrder[i]];
+          [_shuffledOrder[i], _shuffledOrder[j]] = [
+            _shuffledOrder[j],
+            _shuffledOrder[i],
+          ];
         }
       }
       arr.splice(0, arr.length, ..._shuffledOrder);
       break;
   }
+
   if (state.sortReverse) arr.reverse();
 }

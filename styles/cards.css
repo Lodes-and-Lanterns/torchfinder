@@ -61,8 +61,12 @@
 }
 
 @keyframes reshuffle-pulse {
-  0%, 100% { background-color: transparent; }
-  50% { background-color: rgba(245, 168, 72, 0.45); }
+  0%, 100% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: rgba(245, 168, 72, 0.45);
+  }
 }
 
 #sort-reshuffle.pulsing {
@@ -481,8 +485,12 @@
 }
 
 @keyframes skeleton-shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 /* Pagination */

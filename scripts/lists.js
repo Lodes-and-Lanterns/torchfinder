@@ -1,6 +1,6 @@
-import LZString from '../dependencies/lz-string.js';
+import LZString from "../dependencies/lz-string.js";
 
-const STORAGE_KEY = 'torchfinder-lists';
+const STORAGE_KEY = "torchfinder-lists";
 
 // ENCODING
 ///////////
@@ -8,19 +8,21 @@ const STORAGE_KEY = 'torchfinder-lists';
 // Encodes an ordered array of entry IDs to a versioned, URL-safe compressed string.
 // Uses LZ-string compression, which significantly reduces URL length for larger lists.
 export function encodeListPayload(ids) {
-  if (!ids.length) return 'v1:';
-  return 'v1:' + LZString.compressToEncodedURIComponent(ids.join(','));
+  if (!ids.length) return "v1:";
+  return "v1:" + LZString.compressToEncodedURIComponent(ids.join(","));
 }
 
 // Decodes a versioned payload back to an array of entry IDs.
 // Returns an empty array for unknown versions or malformed input.
 export function decodeListPayload(payload) {
-  if (!payload || !payload.startsWith('v1:')) return [];
+  if (!payload || !payload.startsWith("v1:")) return [];
+
   const compressed = payload.slice(3);
   if (!compressed) return [];
+
   try {
     const decoded = LZString.decompressFromEncodedURIComponent(compressed);
-    return decoded ? decoded.split(',').filter(Boolean) : [];
+    return decoded ? decoded.split(",").filter(Boolean) : [];
   } catch {
     return [];
   }
@@ -51,11 +53,23 @@ export function saveList(list) {
   const lists = getLists();
   const idx = lists.findIndex((l) => l.id === list.id);
   const now = new Date().toISOString();
+
   if (idx === -1) {
-    lists.push({ ...list, createdAt: now, updatedAt: now, lastAccessedAt: now });
+    lists.push({
+      ...list,
+      createdAt: now,
+      updatedAt: now,
+      lastAccessedAt: now,
+    });
   } else {
-    lists[idx] = { ...lists[idx], ...list, updatedAt: now, lastAccessedAt: now };
+    lists[idx] = {
+      ...lists[idx],
+      ...list,
+      updatedAt: now,
+      lastAccessedAt: now,
+    };
   }
+
   setLists(lists);
 }
 
@@ -67,6 +81,7 @@ export function deleteList(id) {
 export function touchList(id) {
   const lists = getLists();
   const idx = lists.findIndex((l) => l.id === id);
+
   if (idx !== -1) {
     lists[idx].lastAccessedAt = new Date().toISOString();
     setLists(lists);
@@ -84,9 +99,11 @@ export function clearAllLists() {
 // Returns true if any saved list has the given name (case-insensitive),
 // optionally ignoring a specific list ID (used when renaming).
 export function listNameExists(name, excludeId = null) {
-  const normalized = (name || '').trim().toLowerCase();
+  const normalized = (name || "").trim().toLowerCase();
+
   return getLists().some(
-    (l) => (l.name || '').trim().toLowerCase() === normalized && l.id !== excludeId,
+    (l) =>
+      (l.name || "").trim().toLowerCase() === normalized && l.id !== excludeId,
   );
 }
 
@@ -101,12 +118,15 @@ export function importLists(incoming) {
 
   const existing = getLists();
   const map = new Map(existing.map((l) => [l.id, l]));
+
   let count = 0;
 
   for (const l of incoming) {
     if (!l.id || !Array.isArray(l.entries)) continue;
+
     const current = map.get(l.id);
-    if (!current || (l.updatedAt || '') > (current.updatedAt || '')) {
+
+    if (!current || (l.updatedAt || "") > (current.updatedAt || "")) {
       map.set(l.id, { ...l });
       ++count;
     }
@@ -123,12 +143,12 @@ export function importLists(incoming) {
 // Compares the current in-memory list state against localStorage.
 // Returns 'saved', 'modified', or 'unsaved'.
 export function getListSavedState(id, entries) {
-  if (!id) return 'unsaved';
+  if (!id) return "unsaved";
 
   const saved = getList(id);
-  if (!saved) return 'unsaved';
+  if (!saved) return "unsaved";
 
-  if (JSON.stringify(saved.entries) === JSON.stringify(entries)) return 'saved';
+  if (JSON.stringify(saved.entries) === JSON.stringify(entries)) return "saved";
 
-  return 'modified';
+  return "modified";
 }

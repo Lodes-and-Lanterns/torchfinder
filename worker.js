@@ -1,4 +1,4 @@
-import { processChunk, flushBuffer } from './scripts/worker-utils.js';
+import { flushBuffer, processChunk } from "./scripts/worker-utils.js";
 
 const BATCH_SIZE = 50;
 
@@ -7,10 +7,12 @@ self.onmessage = async ({ data: { url } }) => {
     const response = await fetch(url);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-    let buffer = '';
+    let buffer = "";
     let batch = [];
 
-    const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
+    const reader = response.body.pipeThrough(new TextDecoderStream())
+      .getReader();
+
     while (true) {
       const { done, value } = await reader.read();
 
@@ -23,7 +25,7 @@ self.onmessage = async ({ data: { url } }) => {
         batch.push(entry);
 
         if (batch.length >= BATCH_SIZE) {
-          self.postMessage({ type: 'batch', entries: batch });
+          self.postMessage({ type: "batch", entries: batch });
           batch = [];
         }
       }
@@ -32,10 +34,10 @@ self.onmessage = async ({ data: { url } }) => {
     const last = flushBuffer(buffer);
     if (last !== null) batch.push(last);
 
-    if (batch.length) self.postMessage({ type: 'batch', entries: batch });
+    if (batch.length) self.postMessage({ type: "batch", entries: batch });
 
-    self.postMessage({ type: 'done' });
+    self.postMessage({ type: "done" });
   } catch (err) {
-    self.postMessage({ type: 'error', message: err.message });
+    self.postMessage({ type: "error", message: err.message });
   }
 };

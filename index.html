@@ -3,9 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <link rel="icon" href="/common-web/favicon.png" type="image/png">
   <link rel="apple-touch-icon" href="/common-web/apple-touch-icon.png">
+
   <title>Torchfinder — Lodes &amp; Lanterns</title>
+
   <meta name="description" content="Find official and third-party Shadowdark content, including adventures, supplements, and zines." />
 
   <!-- Open Graph -->
@@ -33,12 +36,14 @@
       function syncBtn(t) {
         var btn = document.getElementById('theme-toggle');
         if (!btn) return;
+
         btn.textContent = t === 'dark' ? '\u2600\uFE0F' : '\uD83C\uDF19';
         btn.setAttribute('aria-label', t === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
       }
 
       document.addEventListener('DOMContentLoaded', function () {
         syncBtn(document.documentElement.getAttribute('data-theme'));
+
         document.getElementById('theme-toggle').addEventListener('click', function () {
           var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
           document.documentElement.setAttribute('data-theme', next);
@@ -70,9 +75,7 @@
         <a href="https://github.com/Lodes-and-Lanterns/torchfinder-data/issues/new?template=new-entry.yml&title=New+entry%3A+&labels=new-entry" target="_blank" rel="noopener" id="header-add-content" class="outline secondary" role="button">Add content 🧙</a>
         <button type="button" id="random-content-btn" class="outline secondary" disabled>Random 🎲</button>
         <button id="mobile-list-toggle" class="outline secondary" aria-expanded="false" aria-controls="list-panel" aria-haspopup="dialog" aria-label="Open lists panel">Lists 📋</button>
-        <button id="mobile-filter-toggle" aria-expanded="false" aria-controls="filter-sidebar" aria-haspopup="dialog">
-          Menu
-        </button>
+        <button id="mobile-filter-toggle" aria-expanded="false" aria-controls="filter-sidebar" aria-haspopup="dialog">Menu</button>
         <button id="theme-toggle" aria-label="Toggle light/dark mode"></button>
       </div>
     </div>
@@ -149,6 +152,7 @@
           <!-- Level range -->
           <section class="filter-group">
             <button class="filter-group-toggle" data-filter-key="level" aria-expanded="false">Level range <span class="filter-group-chevron" aria-hidden="true">▶</span></button>
+
             <div class="filter-group-content" hidden>
               <div class="range-inputs">
                 <label for="level-min" class="sr-only">Minimum level</label>
@@ -157,7 +161,9 @@
                 <label for="level-max" class="sr-only">Maximum level</label>
                 <input type="number" id="level-max" min="0" placeholder="Max" aria-label="Maximum level" disabled />
               </div>
+
               <p id="level-range-warning" class="range-warning" role="alert" hidden>Min cannot exceed max.</p>
+
               <label class="filter-inline-label">
                 <input type="checkbox" id="exclude-unspecified-level" disabled />
                 Exclude entries without specified level
@@ -168,6 +174,7 @@
           <!-- Party size -->
           <section class="filter-group">
             <button class="filter-group-toggle" data-filter-key="party" aria-expanded="false">Party size <span class="filter-group-chevron" aria-hidden="true">▶</span></button>
+
             <div class="filter-group-content" hidden>
               <div class="range-inputs">
                 <label for="party-min" class="sr-only">Minimum party size</label>
@@ -176,7 +183,9 @@
                 <label for="party-max" class="sr-only">Maximum party size</label>
                 <input type="number" id="party-max" min="1" placeholder="Max" aria-label="Maximum party size" disabled />
               </div>
+
               <p id="party-range-warning" class="range-warning" role="alert" hidden>Min cannot exceed max.</p>
+
               <label class="filter-inline-label">
                 <input type="checkbox" id="exclude-unspecified-party" disabled />
                 Exclude entries without specified party size
@@ -298,16 +307,10 @@
         <div id="search-sort-bar">
           <div id="search-wrapper">
             <label for="search-input" class="sr-only">Search content</label>
-            <input
-              type="search"
-              id="search-input"
-              placeholder="Search content…"
-              autocomplete="off"
-              disabled
-              aria-label="Search content"
-            />
+            <input type="search" id="search-input" placeholder="Search content…" autocomplete="off" disabled aria-label="Search content"/>
             <button type="button" id="search-clear" aria-label="Clear search" hidden>×</button>
           </div>
+
           <div id="sort-wrapper">
             <label for="sort-select" class="sr-only">Sort results by</label>
             <select id="sort-select" disabled aria-label="Sort results by">
@@ -317,6 +320,7 @@
               <option value="level">Sort by level range</option>
               <option value="shuffle">Shuffle</option>
             </select>
+
             <button type="button" id="sort-reshuffle" class="outline secondary" disabled aria-label="Reshuffle results" hidden>↻</button>
             <button type="button" id="sort-reverse" class="outline secondary" disabled aria-label="Reverse sort order" aria-pressed="false">↑</button>
           </div>
@@ -360,11 +364,14 @@
         <a href="https://lodesandlanterns.com/attributions.html" target="_blank" rel="noopener">Attributions</a>
       </p>
     </div>
+
     <div id="footer-meta">
       <p id="footer-timestamps"></p>
       <p id="footer-thumbnail-pref">Thumbnails: <span id="footer-thumbnail-status"></span> <button id="footer-thumbnail-change" class="link-btn" hidden>change</button></p>
     </div>
+
     <script>(function(){var el=document.getElementById('footer-timestamps');if(el&&!el.textContent.trim())el.innerHTML='Last updated <a href="https://github.com/Lodes-and-Lanterns/torchfinder" target="_blank" rel="noopener">app</a> on '+new Date().toISOString().slice(0,10)+' (local)';})();</script>
+
     <div id="footer-disclaimer">
       Lodes &amp; Lanterns is not affiliated with The Arcane Library, LLC. Shadowdark RPG &copy; 2023 The Arcane Library, LLC.
     </div>
