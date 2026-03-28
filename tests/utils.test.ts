@@ -1,5 +1,4 @@
 import { assert, assertEquals } from "@std/assert";
-
 import {
   debounce,
   escapeHtml,
@@ -11,10 +10,10 @@ import {
   langName,
   LANGUAGE_NAMES,
   slugToLabel,
-} from "../scripts/utils.js";
+} from "../src/utils.ts";
 
 // ESCAPE_HTML
-/////////////
+//////////////
 
 Deno.test("escapeHtml: escapes &", () => {
   assertEquals(escapeHtml("a & b"), "a &amp; b");
@@ -48,7 +47,7 @@ Deno.test("escapeHtml: multiple special chars in one string", () => {
 });
 
 // SLUG_TO_LABEL
-//////////////
+////////////////
 
 Deno.test("slugToLabel: single word capitalizes", () => {
   assertEquals(slugToLabel("adventure"), "Adventure");
@@ -71,7 +70,7 @@ Deno.test("slugToLabel: null returns empty string", () => {
 });
 
 // LANG_NAME
-///////////
+////////////
 
 Deno.test("langName: en returns English", () => {
   assertEquals(langName("en"), "English");
@@ -97,7 +96,7 @@ Deno.test("langName: all LANGUAGE_NAMES keys resolve without error", () => {
 });
 
 // FORMAT_LEVEL_RANGE
-///////////////////
+/////////////////////
 
 Deno.test("formatLevelRange: null/null returns null", () => {
   assertEquals(formatLevelRange(null, null), null);
@@ -120,11 +119,11 @@ Deno.test("formatLevelRange: null max shows open-ended range", () => {
 });
 
 Deno.test("formatLevelRange: min/max range", () => {
-  assertEquals(formatLevelRange(1, 3), "Levels 1–3");
+  assertEquals(formatLevelRange(1, 3), "Levels 1\u20133");
 });
 
 // FORMAT_PARTY_SIZE
-//////////////////
+////////////////////
 
 Deno.test("formatPartySize: null/null returns null", () => {
   assertEquals(formatPartySize(null, null), null);
@@ -143,11 +142,11 @@ Deno.test("formatPartySize: null max shows open-ended range", () => {
 });
 
 Deno.test("formatPartySize: min/max range", () => {
-  assertEquals(formatPartySize(3, 5), "3–5 players");
+  assertEquals(formatPartySize(3, 5), "3\u20135 players");
 });
 
 // FORMAT_DATE
-/////////////
+//////////////
 
 Deno.test("formatDate: empty string returns empty string", () => {
   assertEquals(formatDate(""), "");
@@ -175,7 +174,7 @@ Deno.test("formatDate: year-only returns the year string", () => {
 });
 
 // FORMAT_DATE_SHORT
-//////////////////
+////////////////////
 
 Deno.test("formatDateShort: empty string returns empty string", () => {
   assertEquals(formatDateShort(""), "");
@@ -206,7 +205,7 @@ Deno.test("formatDateShort: December is month 12", () => {
 });
 
 // IS_UPCOMING
-/////////////
+//////////////
 
 Deno.test("isUpcoming: null returns false", () => {
   assertEquals(isUpcoming(null), false);
@@ -276,7 +275,7 @@ Deno.test({
   name: "debounce: uses arguments from the last call",
   sanitizeOps: false,
   async fn() {
-    let lastArg = null;
+    let lastArg: unknown = null;
 
     const fn = debounce((v) => {
       lastArg = v;

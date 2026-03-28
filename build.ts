@@ -2,15 +2,19 @@
  * Torchfinder build script (Deno)
  *
  * Steps:
- *   1. Fetch torchfinder-dataset.json from torchfinder-data.
+ *   0. Bundle src/app.ts + src/worker.ts -> staging/js/ via esbuild.
+ *   1. Fetch torchfinder-dataset.jsonl from torchfinder-data.
  *   2. Generate feed.xml (RSS 2.0) from the data.
- *   3. Cache-bust app.js and style.css (SHA-256, first 8 hex chars).
+ *   3. Cache-bust assets (SHA-256, first 8 hex chars).
  *   4. Assemble the staging/ deploy payload.
  *
  * Exit code is nonzero on any failure; a bad build never writes partial output.
  */
 
-const DATA_URL =
+import * as esbuild from "esbuild";
+import { denoPlugins } from "@luca/esbuild-deno-loader";
+
+const DATA_RELEASE_URL =
   "https://github.com/Lodes-and-Lanterns/torchfinder-data/releases/latest/download/torchfinder-dataset.jsonl";
 
 const SITE_URL = "https://torchfinder.lodesandlanterns.com";
@@ -29,12 +33,26 @@ function xmlEscape(str: string): string {
     .replace(/'/g, "&apos;");
 }
 
-async function sha256hex(content: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(content);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+async function sha256hex(content: string | Uint8Array): Promise<string> {
+  const data = typeof content === "string"
+    ? new TextEncoder().encode(content)
+    : content;
+
+  const buf = await crypto.subtle.digest("SHA-256", data as BufferSource);
+
+  return Array.from(new Uint8Array(buf)).map((b) =>
+    b.toString(16).padStart(2, "0")
+  ).join("");
+}
+
+async function readDir(dir: string, ext: string): Promise<string[]> {
+  const names: string[] = [];
+
+  for await (const entry of Deno.readDir(dir)) {
+    if (entry.isFile && entry.name.endsWith(ext)) names.push(entry.name);
+  }
+
+  return names.sort();
 }
 
 // RSS FEED
@@ -72,7 +90,7 @@ function generateFeed(adventures: Adventure[]): string {
       : "";
 
     return `    <item>
-      <title>${xmlEscape(entry.title ?? "")} — Lodes &amp; Lanterns</title>
+      <title>${xmlEscape(entry.title ?? "")} -- Lodes &amp; Lanterns</title>
       <description>${xmlEscape(description)}</description>
       <author>${xmlEscape(authorStr)}</author>
       <link>${xmlEscape(link)}</link>
@@ -84,7 +102,7 @@ function generateFeed(adventures: Adventure[]): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
   <channel>
-    <title>Torchfinder — Lodes &amp; Lanterns</title>
+    <title>Torchfinder -- Lodes &amp; Lanterns</title>
     <description>Find official and third-party Shadowdark content, including adventures, supplements, and zines.</description>
     <link>${SITE_URL}</link>
     <language>en</language>
@@ -96,21 +114,40 @@ ${items.join("\n")}
 `;
 }
 
-// Rewrites relative JS import paths to include a cache-busting version hash.
-// Matches: from './foo.js' or from '../foo.js', single-quoted, no existing ?v=
-function versionImports(source: string, hash: string): string {
-  return source.replace(/from '(\.[^'?]+\.js)'/g, `from '$1?v=${hash}'`);
-}
-
 // MAIN
 ///////
 
 console.log("Torchfinder build starting...");
 
-// Step 1: Fetch torchfinder-dataset.jsonl
-console.log(`Fetching ${DATA_URL}`);
+// STEP 0: BUNDLE
+/////////////////
 
-const dataResponse = await fetch(DATA_URL);
+console.log("Bundling src/app.ts + src/worker.ts -> staging/js/...");
+
+await Deno.mkdir("staging/js", { recursive: true });
+
+await esbuild.build({
+  entryPoints: ["src/app.ts", "src/worker.ts"],
+  bundle: true,
+  plugins: [...denoPlugins()],
+  outdir: "staging/js",
+  format: "esm",
+  platform: "browser",
+  target: "es2022",
+  sourcemap: false,
+  minify: false,
+});
+
+await esbuild.stop();
+
+console.log("Bundle complete.");
+
+// STEP 1: FETCH DATASET
+////////////////////////
+
+console.log(`Fetching ${DATA_RELEASE_URL}`);
+
+const dataResponse = await fetch(DATA_RELEASE_URL);
 if (!dataResponse.ok) {
   console.error(
     `Failed to fetch torchfinder-dataset.jsonl: HTTP ${dataResponse.status}`,
@@ -127,7 +164,7 @@ const adventures: Adventure[] = datasetJsonl
 
 console.log(`Fetched ${adventures.length} entries.`);
 
-// Step 1b: Fetch data release date from GitHub API (best-effort; failure is non-fatal)
+// STEP 1(b): FETCH DATASET RELEASE DATE
 let dataReleaseDate: string | null = null;
 try {
   const releaseResp = await fetch(
@@ -152,73 +189,70 @@ try {
   console.warn(`Could not fetch data release date: ${err}; skipping.`);
 }
 
-// Step 2: Generate RSS feed
+// STEP 2: GENERATE RSS FEED
+////////////////////////////
+
 console.log("Generating RSS feed...");
 const feedXml = generateFeed(adventures);
 
-// Step 3: Cache-bust assets
+// STEP 3: COMPUTE ASSET HASHES
+///////////////////////////////
+
 console.log("Computing asset hashes...");
 
 // Hash the dataset so its URL is versioned independently of JS/CSS
 const dataHash = (await sha256hex(datasetJsonl)).slice(0, 8);
 console.log(`dataset hash: ${dataHash}`);
 
-// Hash app.js + all scripts/*.js together so any module change busts the cache
-const appJs = await Deno.readTextFile("app.js");
-const scriptFiles: string[] = [];
-for await (const entry of Deno.readDir("scripts")) {
-  if (entry.isFile && entry.name.endsWith(".js")) {
-    scriptFiles.push(entry.name);
-  }
-}
+// Hash bundle outputs combined with dataHash
+const jsFiles = await readDir("staging/js", ".js");
+const jsContents = await Promise.all(
+  jsFiles.map((f) => Deno.readTextFile(`staging/js/${f}`)),
+);
+const appHash = (await sha256hex(jsContents.join("\n") + dataHash)).slice(
+  0,
+  8,
+);
+console.log(`staging/js/ hash: ${appHash}`);
 
-scriptFiles.sort();
+// Post-process bundle: inject versioned dataset URL and worker URL
+let appJs = await Deno.readTextFile("staging/js/app.js");
 
-const scriptContents = await Promise.all(
-  scriptFiles.map((f) => Deno.readTextFile(`scripts/${f}`)),
+appJs = appJs.replace(
+  /"\/dist\/torchfinder-dataset\.jsonl"/g,
+  `"/dist/torchfinder-dataset.jsonl?v=${dataHash}"`,
 );
 
-const workerJs = await Deno.readTextFile("worker.js");
-const allJsContent = [appJs, workerJs, ...scriptContents].join("\n");
-const appHash = (await sha256hex(allJsContent + dataHash)).slice(0, 8);
+appJs = appJs.replace(
+  /new URL\("worker\.js",\s*import\.meta\.url\)/g,
+  `new URL("worker.js?v=${appHash}", import.meta.url)`,
+);
 
-// Hash all styles/*.css + common-web/*.css combined
-const styleFiles: string[] = [];
-for await (const entry of Deno.readDir("styles")) {
-  if (entry.isFile && entry.name.endsWith(".css")) styleFiles.push(entry.name);
-}
+await Deno.writeTextFile("staging/js/app.js", appJs);
 
-styleFiles.sort();
+// Hash CSS
+const styleFiles = await readDir("styles", ".css");
 const styleContents = await Promise.all(
   styleFiles.map((f) => Deno.readTextFile(`styles/${f}`)),
 );
 
-const commonWebFiles: string[] = [];
-for await (const entry of Deno.readDir("common-web")) {
-  if (entry.isFile && entry.name.endsWith(".css")) {
-    commonWebFiles.push(entry.name);
-  }
-}
-
-commonWebFiles.sort();
-const commonWebContents = await Promise.all(
-  commonWebFiles.map((f) => Deno.readTextFile(`common-web/${f}`)),
+const commonWebCssFiles = await readDir("common-web", ".css");
+const commonWebCssContents = await Promise.all(
+  commonWebCssFiles.map((f) => Deno.readTextFile(`common-web/${f}`)),
 );
 
-const styleHash =
-  (await sha256hex([...commonWebContents, ...styleContents].join("\n"))).slice(
-    0,
-    8,
-  );
+const styleHash = (await sha256hex(
+  [...commonWebCssContents, ...styleContents].join("\n"),
+)).slice(0, 8);
 
-console.log(`app.js hash: ${appHash}, styles/ hash: ${styleHash}`);
+console.log(`styles/ hash: ${styleHash}`);
 
+// Rewrite index.html
 let indexHtml = await Deno.readTextFile("index.html");
-// Replace href/src references; match quoted filenames without a ?v= already present
-// Note: script tag uses type="module" so the pattern allows any attributes before src
+
 indexHtml = indexHtml.replace(
-  /(<script\b[^>]*\bsrc=")app\.js(")/g,
-  `$1app.js?v=${appHash}$2`,
+  /(<script\b[^>]*\bsrc=")js\/([^"?]+\.js)(")/g,
+  `$1js/$2?v=${appHash}$3`,
 );
 
 indexHtml = indexHtml.replace(
@@ -248,30 +282,12 @@ indexHtml = indexHtml.replace(
   `<p id="footer-timestamps">${timestampText}</p>`,
 );
 
-// Step 4: Assemble staging/
+// STEP 4: ASSEMBLE staging/
+////////////////////////////
+
 console.log("Assembling staging/ directory...");
 
-await Deno.mkdir("staging/dist", { recursive: true });
-await Deno.mkdir("staging/scripts", { recursive: true });
 await Deno.writeTextFile("staging/index.html", indexHtml);
-
-let appJsOut = appJs;
-
-appJsOut = appJsOut.replace(
-  /new Worker\('worker\.js',\s*\{\s*type:\s*'module'\s*\}\)/g,
-  `new Worker('worker.js?v=${appHash}', { type: 'module' })`,
-);
-
-appJsOut = versionImports(appJsOut, appHash);
-
-await Deno.writeTextFile("staging/app.js", appJsOut);
-
-const workerJsOut = versionImports(
-  await Deno.readTextFile("worker.js"),
-  appHash,
-);
-
-await Deno.writeTextFile("staging/worker.js", workerJsOut);
 
 // Copy styles/ to staging/styles/
 await Deno.mkdir("staging/styles", { recursive: true });
@@ -287,70 +303,44 @@ for (const name of styleFiles) {
   await Deno.writeTextFile(`staging/styles/${name}`, src);
 }
 
+console.log(`Copied ${styleFiles.length} CSS files.`);
+
 // Copy common-web/ to staging/common-web/
 await Deno.mkdir("staging/common-web", { recursive: true });
-for (const name of commonWebFiles) {
+for (const name of commonWebCssFiles) {
   await Deno.copyFile(`common-web/${name}`, `staging/common-web/${name}`);
 }
 
-await Deno.copyFile("common-web/theme.js", "staging/common-web/theme.js");
-await Deno.copyFile("common-web/favicon.png", "staging/common-web/favicon.png");
-await Deno.copyFile(
-  "common-web/apple-touch-icon.png",
-  "staging/common-web/apple-touch-icon.png",
-);
+for (const name of ["theme.js", "favicon.png", "apple-touch-icon.png"]) {
+  try {
+    await Deno.copyFile(`common-web/${name}`, `staging/common-web/${name}`);
+  } catch {
+    console.warn(`common-web/${name} not found, skipping.`);
+  }
+}
 
 console.log("Copied common-web assets.");
 
-// Write scripts/ modules: version all relative imports + inject data hash into state.js
-for (const name of scriptFiles) {
-  let src = await Deno.readTextFile(`scripts/${name}`);
-
-  if (name === "state.js") {
-    src = src.replace(
-      /export const DATA_URL = '(dist\/torchfinder-dataset\.jsonl)';/,
-      `export const DATA_URL = '$1?v=${dataHash}';`,
-    );
-  }
-
-  await Deno.writeTextFile(
-    `staging/scripts/${name}`,
-    versionImports(src, appHash),
-  );
-}
-
-console.log(`Copied ${scriptFiles.length} script modules.`);
-
+// Write dataset and feed to staging/dist/
+await Deno.mkdir("staging/dist", { recursive: true });
 await Deno.writeTextFile(
   "staging/dist/torchfinder-dataset.jsonl",
   datasetJsonl,
 );
-
 await Deno.writeTextFile("staging/dist/feed.xml", feedXml);
 
-// Copy dependencies/
-await Deno.mkdir("staging/dependencies", { recursive: true });
-for await (const entry of Deno.readDir("dependencies")) {
-  if (entry.isFile) {
-    await Deno.copyFile(
-      `dependencies/${entry.name}`,
-      `staging/dependencies/${entry.name}`,
-    );
-  }
-}
-
-console.log("Copied dependencies/.");
+console.log("Wrote dataset and feed.");
 
 // Copy robots.txt
-await Deno.copyFile("robots.txt", "staging/robots.txt");
-console.log("Copied robots.txt.");
+try {
+  await Deno.copyFile("robots.txt", "staging/robots.txt");
+  console.log("Copied robots.txt.");
+} catch { /* optional */ }
 
 // Copy CNAME if present
 try {
   await Deno.copyFile("CNAME", "staging/CNAME");
   console.log("Copied CNAME.");
-} catch {
-  // No CNAME file; that's fine
-}
+} catch { /* optional */ }
 
 console.log("Build complete. Output in staging/");

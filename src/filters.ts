@@ -1,7 +1,25 @@
-import { state } from "./state.js";
-import { isUpcoming } from "./utils.js";
+import { state } from "./state.ts";
+import { isUpcoming } from "./utils.ts";
+import type { Entry } from "./types.ts";
 
-export function hasActiveFilters() {
+type ArrayFilterKey =
+  | "categories"
+  | "pricings"
+  | "systems"
+  | "settings"
+  | "envs"
+  | "themes"
+  | "languages"
+  | "pub"
+  | "authors"
+  | "character_options";
+
+interface FilterDef {
+  key: ArrayFilterKey;
+  isArray: boolean;
+}
+
+export function hasActiveFilters(): boolean {
   const f = state.filters;
 
   return (
@@ -30,7 +48,7 @@ export function hasActiveFilters() {
   );
 }
 
-export function matchesText(entry, query) {
+export function matchesText(entry: Entry, query: string): boolean {
   const q = query.toLowerCase();
 
   return (
@@ -43,7 +61,7 @@ export function matchesText(entry, query) {
 }
 
 // Normalises a date string (YYYY-MM-DD, YYYY-MM, or YYYY) to YYYY-MM for comparison.
-function normDateToMonth(d) {
+function normDateToMonth(d: string | null | undefined): string | null {
   if (!d) return null;
   const parts = d.split("-");
   return parts.length >= 2 ? `${parts[0]}-${parts[1]}` : `${parts[0]}-01`;
@@ -53,13 +71,14 @@ function normDateToMonth(d) {
 // If either endpoint is null on the entry, treat as unspecified.
 // If no filter is active, always return true.
 export function rangesOverlap(
-  entryMin,
-  entryMax,
-  filterMin,
-  filterMax,
-  excludeUnspecified,
-) {
-  const hasEntry = entryMin !== null || entryMax !== null;
+  entryMin: number | null | undefined,
+  entryMax: number | null | undefined,
+  filterMin: number | null,
+  filterMax: number | null,
+  excludeUnspecified: boolean,
+): boolean {
+  const hasEntry = entryMin !== null && entryMin !== undefined ||
+    entryMax !== null && entryMax !== undefined;
 
   // Entry has no range data: exclude if requested, otherwise include.
   if (!hasEntry) return !excludeUnspecified;
@@ -68,8 +87,8 @@ export function rangesOverlap(
   const hasFilter = filterMin !== null || filterMax !== null;
   if (!hasFilter) return true;
 
-  const eMin = entryMin !== null ? entryMin : 0;
-  const eMax = entryMax !== null ? entryMax : Infinity;
+  const eMin = entryMin != null ? entryMin : 0;
+  const eMax = entryMax != null ? entryMax : Infinity;
   const fMin = filterMin !== null ? filterMin : 0;
   const fMax = filterMax !== null ? filterMax : Infinity;
 
@@ -78,13 +97,13 @@ export function rangesOverlap(
 
 // Cached shuffle order, cleared whenever the filtered set changes so that
 // toggling sort-reverse reuses the same shuffle rather than generating a new one.
-let _shuffledOrder = null;
+let _shuffledOrder: Entry[] | null = null;
 
-export function clearShuffleCache() {
+export function clearShuffleCache(): void {
   _shuffledOrder = null;
 }
 
-export function applyFilters() {
+export function applyFilters(): void {
   if (!state.data) {
     state.filtered = [];
     return;
@@ -92,7 +111,7 @@ export function applyFilters() {
 
   const f = state.filters;
 
-  const arrayFilterDefs = [
+  const arrayFilterDefs: FilterDef[] = [
     { key: "categories", isArray: true },
     { key: "pricings", isArray: true },
     { key: "systems", isArray: true },
@@ -111,14 +130,15 @@ export function applyFilters() {
 
     // Taxonomy array filters: OR within field
     for (const { key, isArray } of arrayFilterDefs) {
-      const selected = f[key];
+      const selected = (f as unknown as Record<ArrayFilterKey, string[]>)[key];
 
       if (!selected.length) continue;
 
+      const raw = (entry as unknown as Record<string, unknown>)[key];
       const entryVals = isArray
-        ? entry[key] || []
-        : entry[key] != null
-        ? [entry[key]]
+        ? (raw as string[] | undefined) || []
+        : raw != null
+        ? [raw as string]
         : [];
 
       if (!selected.some((v) => entryVals.includes(v))) return false;
@@ -175,7 +195,7 @@ export function applyFilters() {
   sortFiltered();
 }
 
-export function sortFiltered() {
+export function sortFiltered(): void {
   const arr = state.filtered;
 
   switch (state.sort) {

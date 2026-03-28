@@ -1,18 +1,17 @@
 import { assert, assertEquals } from "@std/assert";
-
 import {
   DATA_URL,
   PAGE_SIZE,
   SEARCH_DEBOUNCE_MS,
   SITE_URL,
   state,
-} from "../scripts/state.js";
+} from "../src/state.ts";
 
 // CONSTANTS
 ////////////
 
-Deno.test("DATA_URL points to dist/torchfinder-dataset.jsonl", () => {
-  assertEquals(DATA_URL, "dist/torchfinder-dataset.jsonl");
+Deno.test("DATA_URL points to /dist/torchfinder-dataset.jsonl", () => {
+  assertEquals(DATA_URL, "/dist/torchfinder-dataset.jsonl");
 });
 
 Deno.test("PAGE_SIZE is 25", () => {
@@ -32,6 +31,7 @@ Deno.test("SITE_URL is an https URL", () => {
 
 // STATE SHAPE
 //////////////
+
 // These tests only check key presence, not mutable default values, so they are
 // stable regardless of which order test files run.
 

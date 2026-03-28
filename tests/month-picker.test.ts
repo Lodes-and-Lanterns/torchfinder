@@ -1,15 +1,14 @@
 import { assertEquals } from "@std/assert";
-
 import {
   formatDisplay,
   formatYearMonth,
   isMonthDisabled,
   MONTH_NAMES,
   parseYearMonth,
-} from "../scripts/month-picker.js";
+} from "../src/month-picker.ts";
 
 // PARSE_YEAR_MONTH
-//////////////////
+///////////////////
 
 Deno.test("parseYearMonth: valid YYYY-MM string", () => {
   assertEquals(parseYearMonth("2024-01"), { year: 2024, month: 0 });
@@ -35,7 +34,7 @@ Deno.test("parseYearMonth: invalid formats return null", () => {
 });
 
 // FORMAT_YEAR_MONTH
-//////////////////
+////////////////////
 
 Deno.test("formatYearMonth: pads month to two digits", () => {
   assertEquals(formatYearMonth(2024, 0), "2024-01");
@@ -53,14 +52,14 @@ Deno.test("formatDisplay: returns human-readable string", () => {
 });
 
 Deno.test("formatDisplay: uses correct MONTH_NAMES", () => {
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < 12; ++i) {
     const result = formatDisplay(2000, i);
     assertEquals(result, `${MONTH_NAMES[i]} 2000`);
   }
 });
 
 // IS_MONTH_DISABLED
-//////////////////
+////////////////////
 
 Deno.test("isMonthDisabled: no otherValue => never disabled", () => {
   assertEquals(isMonthDisabled(2024, 5, null, true), false);
@@ -99,11 +98,11 @@ Deno.test("isMonthDisabled: cross-year boundary", () => {
   assertEquals(isMonthDisabled(2024, 0, "2023-01", false), false); // 2024-01 > 2023-01
 });
 
-// Round-trip: parseYearMonth <-> formatYearMonth
-//////////////////////////////////////////////////
+// ROUND TRIP: PARSE_YEAR_MONTH <-> FORMAT_YEAR_MONTH
+/////////////////////////////////////////////////////
 
 Deno.test("round-trip: formatYearMonth output parses back correctly", () => {
-  for (let month = 0; month < 12; month++) {
+  for (let month = 0; month < 12; ++month) {
     const str = formatYearMonth(2024, month);
     const parsed = parseYearMonth(str);
     assertEquals(parsed, { year: 2024, month });

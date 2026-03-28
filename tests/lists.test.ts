@@ -1,5 +1,4 @@
 import { assertEquals } from "@std/assert";
-
 import {
   clearAllLists,
   decodeListPayload,
@@ -13,7 +12,7 @@ import {
   listNameExists,
   saveList,
   touchList,
-} from "../scripts/lists.js";
+} from "../src/lists.ts";
 
 // Reset localStorage before each test that uses storage.
 function resetStorage() {
@@ -21,7 +20,7 @@ function resetStorage() {
 }
 
 // ENCODE_LIST_PAYLOAD
-////////////////////
+//////////////////////
 
 Deno.test('encodeListPayload: empty array returns "v1:"', () => {
   assertEquals(encodeListPayload([]), "v1:");
@@ -52,7 +51,7 @@ Deno.test("encodeListPayload: single id round-trips", () => {
 });
 
 // DECODE_LIST_PAYLOAD
-////////////////////
+//////////////////////
 
 Deno.test("decodeListPayload: empty string returns []", () => {
   assertEquals(decodeListPayload(""), []);
@@ -112,7 +111,7 @@ Deno.test("encodeListPayload: compressed payload is shorter than raw joined IDs 
 });
 
 // GENERATE_LIST_ID
-/////////////////
+///////////////////
 
 Deno.test("generateListId: returns an 8-character alphanumeric string", () => {
   const id = generateListId();
@@ -126,7 +125,7 @@ Deno.test("generateListId: produces unique IDs across 20 calls", () => {
 });
 
 // LOCAL_STORAGE CRUD
-////////////////////
+/////////////////////
 
 Deno.test("getLists: returns [] when storage is empty", () => {
   resetStorage();
@@ -154,9 +153,9 @@ Deno.test("saveList: adds timestamps on create", () => {
 
   const l = getList("ts1");
 
-  assertEquals(typeof l.createdAt, "string");
-  assertEquals(typeof l.updatedAt, "string");
-  assertEquals(typeof l.lastAccessedAt, "string");
+  assertEquals(typeof l!.createdAt, "string");
+  assertEquals(typeof l!.updatedAt, "string");
+  assertEquals(typeof l!.lastAccessedAt, "string");
 });
 
 Deno.test("saveList: updates existing list without changing createdAt", () => {
@@ -164,11 +163,11 @@ Deno.test("saveList: updates existing list without changing createdAt", () => {
 
   saveList({ id: "upd", name: "Original", entries: [] });
 
-  const created = getList("upd").createdAt;
+  const created = getList("upd")!.createdAt;
 
   saveList({ id: "upd", name: "Updated", entries: ["x"] });
 
-  const updated = getList("upd");
+  const updated = getList("upd")!;
 
   assertEquals(updated.name, "Updated");
   assertEquals(updated.createdAt, created);
@@ -188,7 +187,7 @@ Deno.test("getList: returns the correct list by id", () => {
 
   const l = getList("find-me");
 
-  assertEquals(l.name, "Find Me");
+  assertEquals(l!.name, "Find Me");
 });
 
 Deno.test("deleteList: removes a list", () => {
@@ -219,13 +218,13 @@ Deno.test("touchList: updates lastAccessedAt", async () => {
 
   saveList({ id: "touch", name: "Touch", entries: [] });
 
-  const before = getList("touch").lastAccessedAt;
+  const before = getList("touch")!.lastAccessedAt!;
 
   await new Promise((r) => setTimeout(r, 2));
 
   touchList("touch");
 
-  const after = getList("touch").lastAccessedAt;
+  const after = getList("touch")!.lastAccessedAt!;
 
   assertEquals(after >= before, true);
 });
@@ -268,7 +267,7 @@ Deno.test("getListSavedState: order matters (different order = modified)", () =>
 });
 
 // CLEAR_ALL_LISTS
-////////////////
+//////////////////
 
 Deno.test("clearAllLists: removes all lists from storage", () => {
   resetStorage();
@@ -285,7 +284,7 @@ Deno.test("clearAllLists: is a no-op when storage is already empty", () => {
 });
 
 // IMPORT_LISTS
-//////////////
+///////////////
 
 Deno.test("importLists: returns 0 for non-array input", () => {
   resetStorage();
@@ -341,7 +340,7 @@ Deno.test("importLists: replaces existing list when incoming updatedAt is newer"
   ]);
 
   assertEquals(count, 1);
-  assertEquals(getList("clash").name, "New Name");
+  assertEquals(getList("clash")!.name, "New Name");
 });
 
 Deno.test("importLists: keeps existing list when incoming updatedAt is older", () => {
@@ -364,7 +363,7 @@ Deno.test("importLists: keeps existing list when incoming updatedAt is older", (
   ]);
 
   assertEquals(count, 0);
-  assertEquals(getList("clash").name, "Current Name");
+  assertEquals(getList("clash")!.name, "Current Name");
 });
 
 Deno.test("importLists: merges without affecting unrelated existing lists", () => {
@@ -372,11 +371,11 @@ Deno.test("importLists: merges without affecting unrelated existing lists", () =
   saveList({ id: "existing", name: "Existing", entries: ["a"] });
   importLists([{ id: "new", name: "New", entries: [] }]);
   assertEquals(getLists().length, 2);
-  assertEquals(getList("existing").name, "Existing");
+  assertEquals(getList("existing")!.name, "Existing");
 });
 
 // LIST_NAME_EXISTS
-/////////////////
+///////////////////
 
 Deno.test("listNameExists: returns false when storage is empty", () => {
   resetStorage();

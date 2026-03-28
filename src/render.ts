@@ -1,7 +1,8 @@
-import { PAGE_SIZE, state } from "./state.js";
-
-import { getCoverConsent } from "./consent.js";
-
+import { PAGE_SIZE, state } from "./state.ts";
+import { getCoverConsent } from "./consent.ts";
+import { applyFilters, hasActiveFilters } from "./filters.ts";
+import { updateUrl } from "./url.ts";
+import type { Entry, MonthPickerInstance } from "./types.ts";
 import {
   deleteList,
   generateListId,
@@ -11,8 +12,7 @@ import {
   listNameExists,
   saveList,
   touchList,
-} from "./lists.js";
-
+} from "./lists.ts";
 import {
   escapeHtml,
   formatDate,
@@ -22,11 +22,24 @@ import {
   isUpcoming,
   langName,
   slugToLabel,
-} from "./utils.js";
+} from "./utils.ts";
 
-import { applyFilters, hasActiveFilters } from "./filters.js";
+// DOM
+//////
 
-import { updateUrl } from "./url.js";
+export interface PillContainer extends HTMLElement {
+  _allValues?: string[];
+  _topValues?: string[];
+  _filterKey?: string;
+  _labelFn?: ((v: string) => string) | null;
+  _pillFadeListenerAttached?: boolean;
+  _hasTopNCap?: boolean;
+  _hasOverflowNote?: boolean;
+}
+
+interface MonthPickerInput extends HTMLInputElement {
+  _monthPicker?: MonthPickerInstance;
+}
 
 // FILTER SIDEBAR
 /////////////////
@@ -34,24 +47,31 @@ import { updateUrl } from "./url.js";
 export const FILTER_TOP_N = 8;
 export const PUBLISHER_AUTHOR_TOP_N = 20;
 
-const PILL_TOOLTIPS = {
+const PILL_TOOLTIPS: Record<string, string> = {
   "Kelsey Dionne": "Creator of Shadowdark",
   "The Arcane Library": "Publisher of Shadowdark",
 };
 
 // Returns how many values are hidden behind the search input (total minus visible).
-export function filterHiddenCount(totalCount, visibleCount) {
+export function filterHiddenCount(
+  totalCount: number,
+  visibleCount: number,
+): number {
   return Math.max(0, totalCount - visibleCount);
 }
 
-export function collectDistinctValues(field, isArray) {
-  const values = new Set();
+export function collectDistinctValues(
+  field: string,
+  isArray: boolean,
+): string[] {
+  const values = new Set<string>();
 
-  for (const entry of state.data) {
+  for (const entry of state.data!) {
+    const raw = (entry as unknown as Record<string, unknown>)[field];
     if (isArray) {
-      for (const v of entry[field] || []) values.add(v);
-    } else if (entry[field] != null && entry[field] !== "") {
-      values.add(entry[field]);
+      for (const v of (raw as string[] | undefined) || []) values.add(v);
+    } else if (raw != null && raw !== "") {
+      values.add(raw as string);
     }
   }
 
@@ -59,14 +79,19 @@ export function collectDistinctValues(field, isArray) {
 }
 
 // Ties broken alphabetically.
-export function collectTopValues(field, isArray, n) {
-  const counts = new Map();
+export function collectTopValues(
+  field: string,
+  isArray: boolean,
+  n: number,
+): string[] {
+  const counts = new Map<string, number>();
 
-  for (const entry of state.data) {
+  for (const entry of state.data!) {
+    const raw = (entry as unknown as Record<string, unknown>)[field];
     const vals = isArray
-      ? entry[field] || []
-      : entry[field] != null && entry[field] !== ""
-      ? [entry[field]]
+      ? (raw as string[] | undefined) || []
+      : raw != null && raw !== ""
+      ? [raw as string]
       : [];
 
     for (const v of vals) {
@@ -82,9 +107,16 @@ export function collectTopValues(field, isArray, n) {
 
 // Returns topValues with any currently-selected values that didn't make the
 // top-N appended at the end, so active filters are always visible.
-function defaultVisibleValues(topValues, allValues, filterKey) {
-  const selected = state.filters[filterKey] || [];
+function defaultVisibleValues(
+  topValues: string[],
+  allValues: string[],
+  filterKey: string,
+): string[] {
+  const selected =
+    (state.filters as unknown as Record<string, string[]>)[filterKey] || [];
+
   const topSet = new Set(topValues);
+
   const extras = selected.filter((v) =>
     !topSet.has(v) && allValues.includes(v)
   );
@@ -92,8 +124,8 @@ function defaultVisibleValues(topValues, allValues, filterKey) {
   return [...topValues, ...extras];
 }
 
-function setMoreNote(container, count) {
-  let note = container.nextElementSibling;
+function setMoreNote(container: PillContainer, count: number): void {
+  let note = container.nextElementSibling as HTMLElement | null;
 
   if (!note || !note.classList.contains("filter-more-note")) {
     note = document.createElement("p");
@@ -103,12 +135,12 @@ function setMoreNote(container, count) {
 
   note.hidden = count <= 0;
 
-  if (count > 0) note.textContent = `and ${count} more — search above`;
+  if (count > 0) note.textContent = `and ${count} more \u2014 search above`;
 
   container._hasOverflowNote = count > 0;
 }
 
-export function syncPillFade(container) {
+export function syncPillFade(container: PillContainer): void {
   if (container._hasOverflowNote) return;
 
   const content = container.closest(".filter-group-content");
@@ -121,10 +153,17 @@ export function syncPillFade(container) {
   content.classList.toggle("has-pill-overflow", hasOverflow && !atEnd);
 }
 
-export function buildPills(container, values, filterKey, labelFn) {
+export function buildPills(
+  container: PillContainer,
+  values: string[],
+  filterKey: string | undefined,
+  labelFn: ((v: string) => string) | null | undefined,
+): void {
   container.innerHTML = "";
 
-  const selected = state.filters[filterKey] || [];
+  const selected = filterKey
+    ? (state.filters as unknown as Record<string, string[]>)[filterKey] || []
+    : [];
 
   for (const val of values) {
     const btn = document.createElement("button");
@@ -136,7 +175,10 @@ export function buildPills(container, values, filterKey, labelFn) {
 
     if (PILL_TOOLTIPS[val]) btn.title = PILL_TOOLTIPS[val];
 
-    btn.addEventListener("click", () => onPillToggle(filterKey, val, btn));
+    btn.addEventListener(
+      "click",
+      () => onPillToggle(filterKey || "", val, btn),
+    );
 
     container.appendChild(btn);
   }
@@ -149,16 +191,22 @@ export function buildPills(container, values, filterKey, labelFn) {
   if (container.clientHeight > 0) syncPillFade(container);
 }
 
-export function renderFilterSidebar() {
-  const PRICING_LABELS = {
+export function renderFilterSidebar(): void {
+  const PRICING_LABELS: Record<string, string> = {
     free: "Free",
     paid: "Paid",
     pwyw: "Pay What You Want",
   };
 
-  const pricingLabel = (v) => PRICING_LABELS[v] || slugToLabel(v);
+  const pricingLabel = (v: string) => PRICING_LABELS[v] || slugToLabel(v);
 
-  const fields = [
+  const fields: Array<{
+    id: string;
+    key: string;
+    isArray: boolean;
+    fn?: (v: string) => string;
+    pinTop?: string[];
+  }> = [
     { id: "filter-category", key: "categories", isArray: true },
     { id: "filter-pricing", key: "pricings", isArray: true, fn: pricingLabel },
     {
@@ -173,7 +221,7 @@ export function renderFilterSidebar() {
   ];
 
   for (const { id, key, isArray, fn, pinTop } of fields) {
-    const container = document.getElementById(id);
+    const container = document.getElementById(id) as PillContainer | null;
     if (!container) continue;
 
     let allValues = collectDistinctValues(key, isArray);
@@ -201,7 +249,7 @@ export function renderFilterSidebar() {
     container._filterKey = key;
     container._labelFn = fn;
 
-    const searchInput = document.querySelector(
+    const searchInput = document.querySelector<HTMLElement>(
       `.filter-search-within[data-target="${id}"]`,
     );
 
@@ -221,7 +269,9 @@ export function renderFilterSidebar() {
     ...settingTop.filter((v) => !SETTING_PIN.includes(v)),
   ];
 
-  const settingContainer = document.getElementById("filter-setting");
+  const settingContainer = document.getElementById(
+    "filter-setting",
+  ) as PillContainer | null;
   if (settingContainer) {
     const settingVisible = defaultVisibleValues(
       settingTopOrdered,
@@ -242,7 +292,7 @@ export function renderFilterSidebar() {
     settingContainer._labelFn = null;
     settingContainer._hasTopNCap = true;
 
-    const settingSearch = document.querySelector(
+    const settingSearch = document.querySelector<HTMLElement>(
       '.filter-search-within[data-target="filter-setting"]',
     );
 
@@ -257,7 +307,9 @@ export function renderFilterSidebar() {
   const authorVals = collectDistinctValues("authors", true);
   const authorTop = collectTopValues("authors", true, PUBLISHER_AUTHOR_TOP_N);
 
-  const pubContainer = document.getElementById("filter-publisher");
+  const pubContainer = document.getElementById(
+    "filter-publisher",
+  ) as PillContainer | null;
   if (pubContainer) {
     const pubVisible = defaultVisibleValues(publisherTop, publisherVals, "pub");
 
@@ -274,7 +326,7 @@ export function renderFilterSidebar() {
     pubContainer._labelFn = (v) => v;
     pubContainer._hasTopNCap = true;
 
-    const pubSearch = document.querySelector(
+    const pubSearch = document.querySelector<HTMLElement>(
       '.filter-search-within[data-target="filter-publisher"]',
     );
 
@@ -283,7 +335,9 @@ export function renderFilterSidebar() {
     }
   }
 
-  const authorContainer = document.getElementById("filter-authors");
+  const authorContainer = document.getElementById(
+    "filter-authors",
+  ) as PillContainer | null;
 
   if (authorContainer) {
     const authorVisible = defaultVisibleValues(
@@ -305,7 +359,7 @@ export function renderFilterSidebar() {
     authorContainer._labelFn = (v) => v;
     authorContainer._hasTopNCap = true;
 
-    const authorSearch = document.querySelector(
+    const authorSearch = document.querySelector<HTMLElement>(
       '.filter-search-within[data-target="filter-authors"]',
     );
 
@@ -314,79 +368,95 @@ export function renderFilterSidebar() {
     }
   }
 
-  const classVals = collectDistinctValues("character_options", true);
-  const classTop = collectTopValues(
+  const charOptVals = collectDistinctValues("character_options", true);
+  const charOptTop = collectTopValues(
     "character_options",
     true,
     PUBLISHER_AUTHOR_TOP_N,
   );
 
-  const classContainer = document.getElementById("filter-character-options");
+  const charOptContainer = document.getElementById(
+    "filter-character-options",
+  ) as PillContainer | null;
 
-  if (classContainer) {
-    const classVisible = defaultVisibleValues(
-      classTop,
-      classVals,
+  if (charOptContainer) {
+    const charOptVisible = defaultVisibleValues(
+      charOptTop,
+      charOptVals,
       "character_options",
     );
 
-    buildPills(classContainer, classVisible, "character_options", (v) => v);
+    buildPills(charOptContainer, charOptVisible, "character_options", (v) => v);
 
     setMoreNote(
-      classContainer,
-      filterHiddenCount(classVals.length, classVisible.length),
+      charOptContainer,
+      filterHiddenCount(charOptVals.length, charOptVisible.length),
     );
 
-    classContainer._allValues = classVals;
-    classContainer._topValues = classTop;
-    classContainer._filterKey = "character_options";
-    classContainer._labelFn = (v) => v;
-    classContainer._hasTopNCap = true;
+    charOptContainer._allValues = charOptVals;
+    charOptContainer._topValues = charOptTop;
+    charOptContainer._filterKey = "character_options";
+    charOptContainer._labelFn = (v) => v;
+    charOptContainer._hasTopNCap = true;
 
-    const classSearch = document.querySelector(
+    const charOptSearch = document.querySelector<HTMLElement>(
       '.filter-search-within[data-target="filter-character-options"]',
     );
 
-    if (classSearch) {
-      classSearch.hidden = classVals.length <= PUBLISHER_AUTHOR_TOP_N;
+    if (charOptSearch) {
+      charOptSearch.hidden = charOptVals.length <= PUBLISHER_AUTHOR_TOP_N;
     }
   }
 
   syncFilterControlStates();
 }
 
-export function syncFilterControlStates() {
+export function syncFilterControlStates(): void {
   const f = state.filters;
 
-  document.getElementById("has-character-options").checked =
-    f.hasCharacterOptions;
-  document.getElementById("toggle-official").checked = f.official;
-  document.getElementById("toggle-upcoming").checked = f.upcoming;
-  document.getElementById("exclude-unspecified-level").checked =
-    f.excludeUnspecifiedLevel;
-  document.getElementById("exclude-unspecified-party").checked =
-    f.excludeUnspecifiedParty;
-  document.getElementById("level-min").value = f.lmin !== null ? f.lmin : "";
-  document.getElementById("level-max").value = f.lmax !== null ? f.lmax : "";
-  document.getElementById("party-min").value = f.pmin !== null ? f.pmin : "";
-  document.getElementById("party-max").value = f.pmax !== null ? f.pmax : "";
+  (document.getElementById("has-character-options") as HTMLInputElement)
+    .checked = f.hasCharacterOptions;
+  (document.getElementById("toggle-official") as HTMLInputElement).checked =
+    f.official;
+  (document.getElementById("toggle-upcoming") as HTMLInputElement).checked =
+    f.upcoming;
+  (document.getElementById(
+    "exclude-unspecified-level",
+  ) as HTMLInputElement).checked = f.excludeUnspecifiedLevel;
+  (document.getElementById(
+    "exclude-unspecified-party",
+  ) as HTMLInputElement).checked = f.excludeUnspecifiedParty;
+  (document.getElementById("level-min") as HTMLInputElement).value =
+    f.lmin !== null ? String(f.lmin) : "";
+  (document.getElementById("level-max") as HTMLInputElement).value =
+    f.lmax !== null ? String(f.lmax) : "";
+  (document.getElementById("party-min") as HTMLInputElement).value =
+    f.pmin !== null ? String(f.pmin) : "";
+  (document.getElementById("party-max") as HTMLInputElement).value =
+    f.pmax !== null ? String(f.pmax) : "";
 
-  const fromInput = document.getElementById("date-from");
+  const fromInput = document.getElementById("date-from") as
+    | MonthPickerInput
+    | null;
   if (fromInput && fromInput._monthPicker) {
     fromInput._monthPicker.setValue(f.dmin);
   }
 
-  const toInput = document.getElementById("date-to");
+  const toInput = document.getElementById("date-to") as
+    | MonthPickerInput
+    | null;
   if (toInput && toInput._monthPicker) {
     toInput._monthPicker.setValue(f.dmax);
   }
 
-  document.getElementById("search-input").value = state.query;
-  document.getElementById("sort-select").value = state.sort;
+  (document.getElementById("search-input") as HTMLInputElement).value =
+    state.query;
+  (document.getElementById("sort-select") as HTMLSelectElement).value =
+    state.sort;
 
   const sortReverseBtn = document.getElementById("sort-reverse");
   if (sortReverseBtn) {
-    sortReverseBtn.textContent = state.sortReverse ? "↓" : "↑";
+    sortReverseBtn.textContent = state.sortReverse ? "\u2193" : "\u2191";
     sortReverseBtn.setAttribute("aria-pressed", String(state.sortReverse));
   }
 
@@ -396,18 +466,18 @@ export function syncFilterControlStates() {
   }
 }
 
-export function updateClearButton() {
+export function updateClearButton(): void {
   const btn = document.getElementById("clear-filters");
-  if (btn) btn.disabled = !hasActiveFilters();
+  if (btn) (btn as HTMLButtonElement).disabled = !hasActiveFilters();
   syncFilterGroupIndicators();
 }
 
-function syncFilterGroupIndicators() {
+function syncFilterGroupIndicators(): void {
   const f = state.filters;
 
   // pill-based groups: show a numeric count when > 0
   // range/checkbox groups: show a dot when any control is active
-  const groups = [
+  const groups: Array<{ key: string; active: boolean; count: number }> = [
     {
       key: "category",
       active: f.categories.length > 0,
@@ -458,13 +528,13 @@ function syncFilterGroupIndicators() {
   for (const { key, active, count } of groups) {
     if (active) ++totalActive;
 
-    const btn = document.querySelector(
+    const btn = document.querySelector<HTMLElement>(
       `.filter-group-toggle[data-filter-key="${key}"]`,
     );
 
     if (!btn) continue;
 
-    let badge = btn.querySelector(".filter-active-badge");
+    let badge = btn.querySelector<HTMLElement>(".filter-active-badge");
 
     if (active) {
       if (!badge) {
@@ -474,7 +544,7 @@ function syncFilterGroupIndicators() {
         btn.insertBefore(badge, btn.querySelector(".filter-group-chevron"));
       }
 
-      badge.textContent = count !== null ? String(count) : "•";
+      badge.textContent = String(count);
     } else if (badge) {
       badge.remove();
     }
@@ -484,7 +554,9 @@ function syncFilterGroupIndicators() {
   const mobileBtn = document.getElementById("mobile-filter-toggle");
 
   if (mobileBtn) {
-    let mobileBadge = mobileBtn.querySelector(".filter-active-badge");
+    let mobileBadge = mobileBtn.querySelector<HTMLElement>(
+      ".filter-active-badge",
+    );
 
     if (totalActive > 0) {
       if (!mobileBadge) {
@@ -503,12 +575,12 @@ function syncFilterGroupIndicators() {
 // RESULTS
 //////////
 
-export function renderResults() {
-  const list = document.getElementById("results-list");
-  const summary = document.getElementById("result-summary");
-  const backBtn = document.getElementById("back-to-all");
-  const backToListBtn = document.getElementById("back-to-list");
-  const paginationEl = document.getElementById("pagination");
+export function renderResults(): void {
+  const list = document.getElementById("results-list")!;
+  const summary = document.getElementById("result-summary")!;
+  const backBtn = document.getElementById("back-to-all")!;
+  const backToListBtn = document.getElementById("back-to-list")!;
+  const paginationEl = document.getElementById("pagination")!;
 
   updateClearButton();
 
@@ -519,21 +591,21 @@ export function renderResults() {
       ? state.data.find((e) => e.id === state.directId)
       : null;
 
-    document.getElementById("search-sort-bar").hidden = true;
-    document.getElementById("mobile-filter-toggle").hidden = true;
+    document.getElementById("search-sort-bar")!.hidden = true;
+    document.getElementById("mobile-filter-toggle")!.hidden = true;
 
     backBtn.hidden = false;
     backToListBtn.hidden = !state.listMode;
     paginationEl.innerHTML = "";
 
     if (entry) {
-      document.title = `${entry.title} — Torchfinder`;
+      document.title = `${entry.title} \u2014 Torchfinder`;
       summary.textContent = "";
       list.innerHTML = renderCardHtml(entry, true);
 
       attachCardListeners(list);
 
-      const heading = list.querySelector(".card-title");
+      const heading = list.querySelector<HTMLElement>(".card-title");
       if (heading) requestAnimationFrame(() => heading.focus());
     } else {
       document.title = "Torchfinder";
@@ -550,10 +622,10 @@ export function renderResults() {
 
   // List mode: show list view
   if (state.listMode) {
-    document.title = `${state.listName || "Untitled list"} — Torchfinder`;
+    document.title = `${state.listName || "Untitled list"} \u2014 Torchfinder`;
 
-    document.getElementById("search-sort-bar").hidden = true;
-    document.getElementById("mobile-filter-toggle").hidden = true;
+    document.getElementById("search-sort-bar")!.hidden = true;
+    document.getElementById("mobile-filter-toggle")!.hidden = true;
 
     backBtn.hidden = false;
 
@@ -600,12 +672,12 @@ export function renderResults() {
       },
     );
 
-    document.getElementById("list-rename-btn").addEventListener(
+    document.getElementById("list-rename-btn")!.addEventListener(
       "click",
       onStartRenameList,
     );
 
-    document.getElementById("list-copy-url-btn").addEventListener(
+    document.getElementById("list-copy-url-btn")!.addEventListener(
       "click",
       onCopyListUrl,
     );
@@ -617,8 +689,8 @@ export function renderResults() {
     return;
   }
 
-  document.getElementById("search-sort-bar").hidden = false;
-  document.getElementById("mobile-filter-toggle").hidden = false;
+  document.getElementById("search-sort-bar")!.hidden = false;
+  document.getElementById("mobile-filter-toggle")!.hidden = false;
 
   document.title = "Torchfinder";
 
@@ -644,7 +716,7 @@ export function renderResults() {
 
     paginationEl.innerHTML = "";
   } else {
-    const range = count > 1 ? `${start + 1}–${end} of ` : "";
+    const range = count > 1 ? `${start + 1}\u2013${end} of ` : "";
     const label = count === 1 ? "entry" : "entries";
     const filtered = count !== total ? ` (filtered from ${total})` : "";
 
@@ -661,11 +733,11 @@ export function renderResults() {
   updateUrl();
 }
 
-function attachCardListeners(container) {
-  container.querySelectorAll(".result-card").forEach((card) => {
-    const id = card.dataset.id;
+function attachCardListeners(container: HTMLElement): void {
+  container.querySelectorAll<HTMLElement>(".result-card").forEach((card) => {
+    const id = card.dataset.id!;
 
-    const header = card.querySelector(".card-header");
+    const header = card.querySelector<HTMLElement>(".card-header");
 
     if (!header) return;
 
@@ -683,25 +755,25 @@ function attachCardListeners(container) {
       titleLink.addEventListener("click", (e) => e.stopPropagation());
     }
 
-    card.querySelectorAll(".add-to-list-btn").forEach((btn) => {
+    card.querySelectorAll<HTMLElement>(".add-to-list-btn").forEach((btn) => {
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
-        openAddToListModal(btn.dataset.id);
+        openAddToListModal(btn.dataset.id!);
       });
     });
 
-    card.querySelectorAll(".card-list-link").forEach((a) => {
+    card.querySelectorAll<HTMLElement>(".card-list-link").forEach((a) => {
       a.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
-        onOpenList(a.dataset.listId);
+        onOpenList(a.dataset.listId!);
       });
     });
 
-    card.querySelectorAll(".copy-entry-id-btn").forEach((btn) => {
+    card.querySelectorAll<HTMLElement>(".copy-entry-id-btn").forEach((btn) => {
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
-        navigator.clipboard.writeText(btn.dataset.id).then(() => {
+        navigator.clipboard.writeText(btn.dataset.id!).then(() => {
           const prev = btn.textContent;
           btn.textContent = "Copied!";
           setTimeout(() => {
@@ -711,36 +783,38 @@ function attachCardListeners(container) {
       });
     });
 
-    card.querySelectorAll(".copy-entry-link-btn").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
+    card.querySelectorAll<HTMLElement>(".copy-entry-link-btn").forEach(
+      (btn) => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
 
-        const url =
-          `${globalThis.location.origin}${globalThis.location.pathname}?id=${
-            encodeURIComponent(btn.dataset.id)
-          }`;
+          const url =
+            `${globalThis.location.origin}${globalThis.location.pathname}?id=${
+              encodeURIComponent(btn.dataset.id!)
+            }`;
 
-        navigator.clipboard.writeText(url).then(() => {
-          const prev = btn.textContent;
+          navigator.clipboard.writeText(url).then(() => {
+            const prev = btn.textContent;
 
-          btn.textContent = "Copied!";
+            btn.textContent = "Copied!";
 
-          setTimeout(() => {
-            btn.textContent = prev;
-          }, 1500);
-        }).catch(() => {});
-      });
-    });
+            setTimeout(() => {
+              btn.textContent = prev;
+            }, 1500);
+          }).catch(() => {});
+        });
+      },
+    );
   });
 }
 
-export function renderCardHtml(entry, expanded) {
+export function renderCardHtml(entry: Entry, expanded: boolean): string {
   const levelStr = formatLevelRange(entry.lmin, entry.lmax);
   const partyStr = formatPartySize(entry.pmin, entry.pmax);
   const upcoming = isUpcoming(entry.date);
   const authorStr = (entry.authors || []).join(", ");
 
-  const tags = [];
+  const tags: string[] = [];
 
   for (const cat of entry.categories || []) {
     tags.push(`<span class="card-tag">${escapeHtml(cat)}</span>`);
@@ -820,20 +894,20 @@ export function renderCardHtml(entry, expanded) {
   }
     </div>
     <div class="card-tags">${tags.join("")}</div>
-    <span class="card-expand-icon" aria-hidden="true">▶</span>
+    <span class="card-expand-icon" aria-hidden="true">\u25b6</span>
   </div>
   ${buildExpandedHtml(entry, upcoming)}
 </article>`;
 }
 
-export function buildExpandedHtml(entry, upcoming) {
+export function buildExpandedHtml(entry: Entry, upcoming: boolean): string {
   const issueId = encodeURIComponent(entry.id);
   const updateUrl =
     `https://github.com/Lodes-and-Lanterns/torchfinder-data/issues/new?template=update-entry.yml&title=Update+entry%3A+${issueId}&labels=update-entry`;
   const removeUrl =
     `https://github.com/Lodes-and-Lanterns/torchfinder-data/issues/new?template=remove-entry.yml&title=Remove+entry%3A+${issueId}&labels=remove-entry`;
 
-  const rows = [];
+  const rows: string[] = [];
 
   if (entry.pub) rows.push(row("Publisher", entry.pub));
 
@@ -866,7 +940,7 @@ export function buildExpandedHtml(entry, upcoming) {
     rows.push(`<tr><th scope="row">Published</th><td>${dateLabel}</td></tr>`);
   }
 
-  const LINK_TYPE_LABELS = {
+  const LINK_TYPE_LABELS: Record<string, string> = {
     ebook: "eBook",
     "ebook-and-print": "eBook & Print",
     print: "Print",
@@ -874,7 +948,11 @@ export function buildExpandedHtml(entry, upcoming) {
     web: "Web",
   };
 
-  const LINK_PRICING_LABELS = { free: "Free", paid: "Paid", pwyw: "PWYW" };
+  const LINK_PRICING_LABELS: Record<string, string> = {
+    free: "Free",
+    paid: "Paid",
+    pwyw: "PWYW",
+  };
 
   const linksHtml = (entry.links || [])
     .map((link) => {
@@ -980,7 +1058,7 @@ export function buildExpandedHtml(entry, upcoming) {
 </div>`;
 }
 
-export function row(label, value) {
+export function row(label: string, value: string): string {
   return `<tr><th scope="row">${escapeHtml(label)}</th><td>${
     escapeHtml(value)
   }</td></tr>`;
@@ -989,7 +1067,7 @@ export function row(label, value) {
 // PAGINATION
 /////////////
 
-function renderPagination(totalPages) {
+function renderPagination(totalPages: number): void {
   const nav = document.getElementById("pagination");
   if (!nav) return;
 
@@ -1000,7 +1078,7 @@ function renderPagination(totalPages) {
 
   const current = state.page;
   const pages = computePageNumbers(current, totalPages);
-  const items = [];
+  const items: string[] = [];
 
   items.push(
     `<li><a href="#" class="pagination-btn${
@@ -1038,19 +1116,24 @@ function renderPagination(totalPages) {
 
   nav.innerHTML = `<ul class="pagination-list">${items.join("")}</ul>`;
 
-  nav.querySelectorAll(".pagination-btn:not(.disabled)").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      e.preventDefault();
-      const page = parseInt(btn.dataset.page, 10);
-      if (page >= 1 && page <= totalPages) onPageChange(page);
-    });
-  });
+  nav.querySelectorAll<HTMLElement>(".pagination-btn:not(.disabled)").forEach(
+    (btn) => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        const page = parseInt(btn.dataset.page!, 10);
+        if (page >= 1 && page <= totalPages) onPageChange(page);
+      });
+    },
+  );
 }
 
-export function computePageNumbers(current, total) {
+export function computePageNumbers(
+  current: number,
+  total: number,
+): (number | string)[] {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
 
-  const pages = [1];
+  const pages: (number | string)[] = [1];
 
   if (current > 3) pages.push("...");
 
@@ -1072,9 +1155,9 @@ export function computePageNumbers(current, total) {
 // LOADING / ERROR STATES
 /////////////////////////
 
-export function showLoading() {
-  const list = document.getElementById("results-list");
-  const summary = document.getElementById("result-summary");
+export function showLoading(): void {
+  const list = document.getElementById("results-list")!;
+  const summary = document.getElementById("result-summary")!;
 
   list.innerHTML = `
 <div class="loading-skeleton" aria-label="Loading results" aria-busy="true">
@@ -1085,12 +1168,12 @@ export function showLoading() {
   }
 </div>`;
 
-  summary.textContent = "Loading…";
+  summary.textContent = "Loading\u2026";
 }
 
-export function showError() {
-  const list = document.getElementById("results-list");
-  const summary = document.getElementById("result-summary");
+export function showError(): void {
+  const list = document.getElementById("results-list")!;
+  const summary = document.getElementById("result-summary")!;
 
   list.innerHTML =
     '<div class="error-state" role="alert"><p>Failed to load adventure data. Please try refreshing the page.</p></div>';
@@ -1098,14 +1181,17 @@ export function showError() {
   summary.textContent = "";
 }
 
-export function enableControls() {
-  document.querySelectorAll(
+export function enableControls(): void {
+  document.querySelectorAll<HTMLElement>(
     "#filter-controls input, #filter-controls select, #filter-controls button, #search-input, #sort-select, #sort-reverse, #sort-reshuffle",
   ).forEach((el) => {
-    el.disabled = false;
+    (el as HTMLInputElement | HTMLSelectElement | HTMLButtonElement).disabled =
+      false;
   });
 
-  document.querySelectorAll("#random-content-btn, #random-content-btn-mobile")
+  document.querySelectorAll<HTMLButtonElement>(
+    "#random-content-btn, #random-content-btn-mobile",
+  )
     .forEach((btn) => {
       btn.disabled = false;
     });
@@ -1113,12 +1199,15 @@ export function enableControls() {
 
 // PILL / CARD / PAGE INTERACTIONS
 //////////////////////////////////
-
-// Kept here (rather than handlers.js) to avoid circular imports: render
+// Kept here (rather than handlers.ts) to avoid circular imports: render
 // functions call these, and these call render functions.
 
-export function onPillToggle(key, value, btn) {
-  const arr = state.filters[key];
+export function onPillToggle(
+  key: string,
+  value: string,
+  btn: HTMLElement,
+): void {
+  const arr = (state.filters as unknown as Record<string, string[]>)[key];
   const idx = arr.indexOf(value);
 
   if (idx === -1) arr.push(value);
@@ -1136,12 +1225,12 @@ export function onPillToggle(key, value, btn) {
   updateClearButton();
 }
 
-export function onCardClick(id) {
+export function onCardClick(id: string): void {
   const wasExpanded = state.expandedCardId === id;
 
   // Collapse the previously expanded card if it's a different one
   if (state.expandedCardId && state.expandedCardId !== id) {
-    const prev = document.querySelector(
+    const prev = document.querySelector<HTMLElement>(
       `.result-card[data-id="${CSS.escape(state.expandedCardId)}"]`,
     );
 
@@ -1149,14 +1238,14 @@ export function onCardClick(id) {
       prev.classList.remove("expanded");
       prev.setAttribute("aria-expanded", "false");
 
-      const prevContent = prev.querySelector(".card-expanded");
+      const prevContent = prev.querySelector<HTMLElement>(".card-expanded");
       if (prevContent) prevContent.style.display = "none";
     }
   }
 
   state.expandedCardId = wasExpanded ? null : id;
 
-  const card = document.querySelector(
+  const card = document.querySelector<HTMLElement>(
     `.result-card[data-id="${CSS.escape(id)}"]`,
   );
 
@@ -1166,18 +1255,18 @@ export function onCardClick(id) {
   card.classList.toggle("expanded", expanding);
   card.setAttribute("aria-expanded", String(expanding));
 
-  const content = card.querySelector(".card-expanded");
+  const content = card.querySelector<HTMLElement>(".card-expanded");
   if (content) content.style.display = expanding ? "block" : "none";
 
   if (expanding) {
-    const heading = card.querySelector(".card-title");
+    const heading = card.querySelector<HTMLElement>(".card-title");
     if (heading) heading.focus({ preventScroll: true });
   }
 
   updateUrl();
 }
 
-export function onPageChange(page) {
+export function onPageChange(page: number): void {
   const distanceFromBottom = document.documentElement.scrollHeight -
     globalThis.scrollY - globalThis.innerHeight;
 
@@ -1196,8 +1285,8 @@ export function onPageChange(page) {
 // LIST VIEW
 ////////////
 
-function renderListView() {
-  const list = document.getElementById("results-list");
+function renderListView(): void {
+  const list = document.getElementById("results-list")!;
   const unsaved = !getList(state.listId) &&
     getListSavedState(state.listId, state.listEntries) !== "saved";
 
@@ -1205,7 +1294,7 @@ function renderListView() {
     ? '<div class="list-view-actions"><button type="button" class="outline secondary" id="list-save-btn">Save</button></div>'
     : "";
 
-  let rowsHtml;
+  let rowsHtml: string;
   if (state.listEntries.length === 0) {
     rowsHtml =
       '<div class="empty-state"><p>This list is empty. Browse and expand entries to add them.</p></div>';
@@ -1233,7 +1322,7 @@ function renderListView() {
 <div class="list-entry-row" draggable="true" data-idx="${idx}" data-id="${
             escapeHtml(entry.id)
           }">
-  <span class="list-drag-handle" aria-hidden="true">⠿</span>
+  <span class="list-drag-handle" aria-hidden="true">\u2807</span>
   <div class="list-entry-num">${idx + 1}</div>
   <div class="list-entry-info">
     <a href="?id=${encodeURIComponent(entry.id)}" class="list-entry-title">${
@@ -1252,7 +1341,7 @@ function renderListView() {
 <div class="list-entry-row list-entry-stale" draggable="true" data-idx="${idx}" data-id="${
             escapeHtml(entryId)
           }">
-  <span class="list-drag-handle" aria-hidden="true">⠿</span>
+  <span class="list-drag-handle" aria-hidden="true">\u2807</span>
   <div class="list-entry-num">${idx + 1}</div>
   <div class="list-entry-info">
     <span class="list-entry-title list-entry-title--stale">Unknown entry</span>
@@ -1273,16 +1362,18 @@ function renderListView() {
   const descriptionHtml = `<textarea
     class="list-view-description"
     id="list-view-description"
-    placeholder="Add a description…"
+    placeholder="Add a description\u2026"
     rows="1"
     aria-label="List description"
   >${escapeHtml(state.listDescription || "")}</textarea>`;
 
   list.innerHTML = descriptionHtml + headerHtml + rowsHtml;
 
-  const descEl = document.getElementById("list-view-description");
+  const descEl = document.getElementById(
+    "list-view-description",
+  ) as HTMLTextAreaElement;
 
-  function autoResize() {
+  function autoResize(): void {
     descEl.style.height = "auto";
     descEl.style.height = descEl.scrollHeight + "px";
   }
@@ -1302,45 +1393,47 @@ function renderListView() {
     onSaveList,
   );
 
-  list.querySelectorAll(".list-remove-btn").forEach((btn) => {
-    const row = btn.closest(".list-entry-row");
+  list.querySelectorAll<HTMLElement>(".list-remove-btn").forEach((btn) => {
+    const row = btn.closest<HTMLElement>(".list-entry-row")!;
     btn.addEventListener(
       "click",
-      () => onListEntryRemove(parseInt(row.dataset.idx, 10)),
+      () => onListEntryRemove(parseInt(row.dataset.idx!, 10)),
     );
   });
 
-  list.querySelectorAll(".list-move-btn").forEach((btn) => {
-    const row = btn.closest(".list-entry-row");
+  list.querySelectorAll<HTMLElement>(".list-move-btn").forEach((btn) => {
+    const row = btn.closest<HTMLElement>(".list-entry-row")!;
 
     btn.addEventListener(
       "click",
-      () => onListEntryMove(parseInt(row.dataset.idx, 10), btn.dataset.dir),
+      () => onListEntryMove(parseInt(row.dataset.idx!, 10), btn.dataset.dir!),
     );
   });
 
   // Intercept title link clicks so navigating to an entry keeps list state in memory.
-  list.querySelectorAll(".list-entry-title[href]").forEach((link) => {
-    link.addEventListener("click", (e) => {
-      e.preventDefault();
+  list.querySelectorAll<HTMLAnchorElement>(".list-entry-title[href]").forEach(
+    (link) => {
+      link.addEventListener("click", (e) => {
+        e.preventDefault();
 
-      const params = new URLSearchParams(
-        new URL(link.href, globalThis.location.href).search,
-      );
+        const params = new URLSearchParams(
+          new URL(link.href, globalThis.location.href).search,
+        );
 
-      state.directId = params.get("id");
+        state.directId = params.get("id");
 
-      renderResults();
-    });
-  });
+        renderResults();
+      });
+    },
+  );
 
   setupListDragDrop(list);
 }
 
-function setupListDragDrop(container) {
-  let dragSrcIdx = null;
+function setupListDragDrop(container: HTMLElement): void {
+  let dragSrcIdx: number | null = null;
 
-  function clearIndicators() {
+  function clearIndicators(): void {
     container.querySelectorAll(".drag-over-top, .drag-over-bottom").forEach(
       (el) => {
         el.classList.remove("drag-over-top", "drag-over-bottom");
@@ -1348,12 +1441,12 @@ function setupListDragDrop(container) {
     );
   }
 
-  container.querySelectorAll(".list-entry-row").forEach((row) => {
+  container.querySelectorAll<HTMLElement>(".list-entry-row").forEach((row) => {
     row.addEventListener("dragstart", (e) => {
-      dragSrcIdx = parseInt(row.dataset.idx, 10);
+      dragSrcIdx = parseInt(row.dataset.idx!, 10);
 
-      e.dataTransfer.effectAllowed = "move";
-      e.dataTransfer.setData("text/plain", ""); // required by Firefox
+      e.dataTransfer!.effectAllowed = "move";
+      e.dataTransfer!.setData("text/plain", ""); // required by Firefox
 
       requestAnimationFrame(() => row.classList.add("drag-dragging"));
     });
@@ -1367,11 +1460,13 @@ function setupListDragDrop(container) {
     row.addEventListener("dragover", (e) => {
       e.preventDefault();
 
-      if (dragSrcIdx === null || parseInt(row.dataset.idx, 10) === dragSrcIdx) {
+      if (
+        dragSrcIdx === null || parseInt(row.dataset.idx!, 10) === dragSrcIdx
+      ) {
         return;
       }
 
-      e.dataTransfer.dropEffect = "move";
+      e.dataTransfer!.dropEffect = "move";
 
       clearIndicators();
 
@@ -1385,7 +1480,7 @@ function setupListDragDrop(container) {
     });
 
     row.addEventListener("dragleave", (e) => {
-      if (!row.contains(e.relatedTarget)) {
+      if (!row.contains(e.relatedTarget as Node)) {
         row.classList.remove("drag-over-top", "drag-over-bottom");
       }
     });
@@ -1394,7 +1489,7 @@ function setupListDragDrop(container) {
       e.preventDefault();
 
       if (dragSrcIdx === null) return;
-      const targetIdx = parseInt(row.dataset.idx, 10);
+      const targetIdx = parseInt(row.dataset.idx!, 10);
       if (targetIdx === dragSrcIdx) return;
 
       const rect = row.getBoundingClientRect();
@@ -1411,20 +1506,20 @@ function setupListDragDrop(container) {
       renderResults();
 
       requestAnimationFrame(() => {
-        const row = document.querySelector(
+        const movedRow = document.querySelector<HTMLElement>(
           `.list-entry-row[data-id="${CSS.escape(moved)}"]`,
         );
 
-        if (row) {
-          row.classList.add("list-entry-moved");
-          setTimeout(() => row.classList.remove("list-entry-moved"), 700);
+        if (movedRow) {
+          movedRow.classList.add("list-entry-moved");
+          setTimeout(() => movedRow.classList.remove("list-entry-moved"), 700);
         }
       });
     });
   });
 }
 
-export function renderListPanel() {
+export function renderListPanel(): void {
   const content = document.getElementById("list-panel-content");
   if (!content) return;
 
@@ -1459,34 +1554,38 @@ export function renderListPanel() {
 </div>`,
     ).join("");
 
-  content.querySelectorAll(".list-panel-item-name").forEach((a) => {
-    a.addEventListener("click", (e) => {
-      e.preventDefault();
-      onOpenList(a.dataset.id);
-    });
-  });
+  content.querySelectorAll<HTMLElement>(".list-panel-item-name").forEach(
+    (a) => {
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        onOpenList(a.dataset.id!);
+      });
+    },
+  );
 
-  content.querySelectorAll(".list-panel-delete-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const l = getList(btn.dataset.id);
+  content.querySelectorAll<HTMLElement>(".list-panel-delete-btn").forEach(
+    (btn) => {
+      btn.addEventListener("click", () => {
+        const l = getList(btn.dataset.id);
 
-      if (l && confirm(`Delete "${l.name || "Untitled list"}"?`)) {
-        deleteList(btn.dataset.id);
-        renderListPanel();
-      }
-    });
-  });
+        if (l && confirm(`Delete "${l.name || "Untitled list"}"?`)) {
+          deleteList(btn.dataset.id);
+          renderListPanel();
+        }
+      });
+    },
+  );
 }
 
-let _modalOpener = null;
-let _modalKeydownHandler = null;
+let modalOpener: Element | null = null;
+let modalKeydownHandler: ((e: KeyboardEvent) => void) | null = null;
 
-export function openAddToListModal(entryId) {
+export function openAddToListModal(entryId: string): void {
   const modal = document.getElementById("add-to-list-modal");
   const body = document.getElementById("list-modal-body");
   if (!modal || !body) return;
 
-  _modalOpener = document.activeElement;
+  modalOpener = document.activeElement;
 
   const allLists = getLists().sort((a, b) =>
     (b.lastAccessedAt || "").localeCompare(a.lastAccessedAt || "")
@@ -1496,7 +1595,10 @@ export function openAddToListModal(entryId) {
 
   const hasLists = allLists.length > 0;
 
-  function renderListButtons(lists, label) {
+  function renderListButtons(
+    lists: typeof allLists,
+    label: string,
+  ): void {
     const container = document.getElementById("list-modal-lists");
     const labelEl = document.getElementById("list-modal-lists-label");
 
@@ -1536,32 +1638,35 @@ export function openAddToListModal(entryId) {
 </div>`,
       ).join("");
 
-    container.querySelectorAll(".add-to-existing-list-btn").forEach((btn) => {
-      btn.addEventListener(
-        "click",
-        () => onAddToExistingList(entryId, btn.dataset.listId, btn),
-      );
-    });
-
-    container.querySelectorAll(".list-modal-goto-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        closeAddToListModal();
-        onOpenList(btn.dataset.listId);
+    container.querySelectorAll<HTMLElement>(".add-to-existing-list-btn")
+      .forEach((btn) => {
+        btn.addEventListener(
+          "click",
+          () => onAddToExistingList(entryId, btn.dataset.listId!, btn),
+        );
       });
-    });
+
+    container.querySelectorAll<HTMLElement>(".list-modal-goto-btn").forEach(
+      (btn) => {
+        btn.addEventListener("click", () => {
+          closeAddToListModal();
+          onOpenList(btn.dataset.listId!);
+        });
+      },
+    );
   }
 
   body.innerHTML = `${
     hasLists
       ? `
-<input type="search" id="list-modal-search" class="list-modal-search" placeholder="Search lists…" aria-label="Search lists" />
+<input type="search" id="list-modal-search" class="list-modal-search" placeholder="Search lists\u2026" aria-label="Search lists" />
 <h4 class="list-modal-section-label" id="list-modal-lists-label">Recent lists <span class="list-modal-max-note">(Shows 5 max)</span></h4>
 <div id="list-modal-lists" class="list-modal-recent"></div>`
       : ""
   }
 <h4 class="list-modal-section-label">New list <span class="list-modal-max-note">(+)</span></h4>
 <div class="list-modal-create">
-  <input type="text" id="new-list-name-input" placeholder="List name…" aria-label="New list name" />
+  <input type="text" id="new-list-name-input" placeholder="List name\u2026" aria-label="New list name" />
   <button type="button" id="create-and-add-btn" class="outline secondary">Create &amp; add</button>
 </div>
 <p id="new-list-name-error" class="list-name-error" hidden></p>`;
@@ -1569,10 +1674,10 @@ export function openAddToListModal(entryId) {
   if (hasLists) {
     renderListButtons(recentLists, "Recent lists");
 
-    document.getElementById("list-modal-search").addEventListener(
+    document.getElementById("list-modal-search")!.addEventListener(
       "input",
       (e) => {
-        const q = e.target.value.trim().toLowerCase();
+        const q = (e.target as HTMLInputElement).value.trim().toLowerCase();
 
         if (q) {
           renderListButtons(
@@ -1592,7 +1697,9 @@ export function openAddToListModal(entryId) {
   modal.removeAttribute("aria-hidden");
 
   const createBtn = document.getElementById("create-and-add-btn");
-  const nameInput = document.getElementById("new-list-name-input");
+  const nameInput = document.getElementById(
+    "new-list-name-input",
+  ) as HTMLInputElement | null;
 
   createBtn?.addEventListener("click", () => {
     onCreateAndAddToList(entryId, nameInput?.value.trim() || "Untitled list");
@@ -1605,18 +1712,23 @@ export function openAddToListModal(entryId) {
 
   nameInput?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
-      onCreateAndAddToList(entryId, nameInput.value.trim() || "Untitled list");
+      onCreateAndAddToList(
+        entryId,
+        nameInput!.value.trim() || "Untitled list",
+      );
     }
 
     if (e.key === "Escape") closeAddToListModal();
   });
 
   requestAnimationFrame(() => {
-    const first = modal.querySelector("input, button:not([disabled])");
+    const first = modal.querySelector<HTMLElement>(
+      "input, button:not([disabled])",
+    );
     if (first) first.focus();
   });
 
-  _modalKeydownHandler = (e) => {
+  modalKeydownHandler = (e: KeyboardEvent) => {
     if (e.key === "Escape") {
       closeAddToListModal();
       return;
@@ -1624,7 +1736,7 @@ export function openAddToListModal(entryId) {
 
     if (e.key !== "Tab") return;
 
-    const focusable = modal.querySelectorAll(
+    const focusable = modal.querySelectorAll<HTMLElement>(
       'button:not([disabled]), input:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])',
     );
 
@@ -1646,29 +1758,29 @@ export function openAddToListModal(entryId) {
     }
   };
 
-  modal.addEventListener("keydown", _modalKeydownHandler);
+  modal.addEventListener("keydown", modalKeydownHandler);
 }
 
-export function closeAddToListModal() {
+export function closeAddToListModal(): void {
   const modal = document.getElementById("add-to-list-modal");
 
   if (modal) {
     modal.setAttribute("hidden", "");
     modal.setAttribute("aria-hidden", "true");
 
-    if (_modalKeydownHandler) {
-      modal.removeEventListener("keydown", _modalKeydownHandler);
-      _modalKeydownHandler = null;
+    if (modalKeydownHandler) {
+      modal.removeEventListener("keydown", modalKeydownHandler);
+      modalKeydownHandler = null;
     }
   }
 
-  if (_modalOpener) {
-    _modalOpener.focus();
-    _modalOpener = null;
+  if (modalOpener) {
+    (modalOpener as HTMLElement).focus();
+    modalOpener = null;
   }
 }
 
-function onSaveList() {
+function onSaveList(): void {
   if (!state.listId) state.listId = generateListId();
 
   state.listSynced = true;
@@ -1684,7 +1796,7 @@ function onSaveList() {
   renderResults();
 }
 
-function onCopyListUrl() {
+function onCopyListUrl(): void {
   navigator.clipboard.writeText(globalThis.location.href).then(() => {
     const btn = document.getElementById("list-copy-url-btn");
 
@@ -1700,7 +1812,7 @@ function onCopyListUrl() {
   }).catch(() => {});
 }
 
-function autoSave() {
+function autoSave(): void {
   if (state.listId && (state.listSynced || !!getList(state.listId))) {
     state.listSynced = true;
     saveList({
@@ -1712,7 +1824,7 @@ function autoSave() {
   }
 }
 
-function onListEntryRemove(idx) {
+function onListEntryRemove(idx: number): void {
   state.listEntries.splice(idx, 1);
 
   autoSave();
@@ -1720,7 +1832,7 @@ function onListEntryRemove(idx) {
   renderResults();
 }
 
-function onListEntryMove(idx, dir) {
+function onListEntryMove(idx: number, dir: string): void {
   const entries = state.listEntries;
   const movedId = entries[idx];
 
@@ -1737,18 +1849,18 @@ function onListEntryMove(idx, dir) {
   renderResults();
 
   requestAnimationFrame(() => {
-    const row = document.querySelector(
+    const movedRow = document.querySelector<HTMLElement>(
       `.list-entry-row[data-id="${CSS.escape(movedId)}"]`,
     );
 
-    if (row) {
-      row.classList.add("list-entry-moved");
-      setTimeout(() => row.classList.remove("list-entry-moved"), 700);
+    if (movedRow) {
+      movedRow.classList.add("list-entry-moved");
+      setTimeout(() => movedRow.classList.remove("list-entry-moved"), 700);
     }
   });
 }
 
-function onStartRenameList() {
+function onStartRenameList(): void {
   const nameEl = document.getElementById("list-view-name");
   if (!nameEl) return;
 
@@ -1762,11 +1874,11 @@ function onStartRenameList() {
   input.focus();
   input.select();
 
-  function commit() {
+  function commit(): void {
     const newName = input.value.trim() || "Untitled list";
 
     if (listNameExists(newName, state.listId)) {
-      let errEl = input.nextElementSibling;
+      let errEl = input.nextElementSibling as HTMLElement | null;
 
       if (!errEl || !errEl.classList.contains("list-name-error")) {
         errEl = document.createElement("p");
@@ -1808,7 +1920,7 @@ function onStartRenameList() {
   });
 }
 
-function onOpenList(id) {
+function onOpenList(id: string): void {
   const l = getList(id);
   if (!l) return;
 
@@ -1825,7 +1937,11 @@ function onOpenList(id) {
   renderResults();
 }
 
-function onAddToExistingList(entryId, listId, btn) {
+function onAddToExistingList(
+  entryId: string,
+  listId: string,
+  btn: HTMLElement,
+): void {
   const l = getList(listId);
   if (!l) return;
 
@@ -1839,8 +1955,8 @@ function onAddToExistingList(entryId, listId, btn) {
 
   if (btn) {
     const count = l.entries.length;
-    const row = btn.closest(".list-modal-item-row");
-    const countEl = row && row.querySelector(".list-item-count");
+    const row = btn.closest<HTMLElement>(".list-modal-item-row");
+    const countEl = row && row.querySelector<HTMLElement>(".list-item-count");
 
     if (alreadyIn) {
       if (row) row.style.animation = "list-row-flash-red 0.35s ease-in-out 2";
@@ -1849,12 +1965,12 @@ function onAddToExistingList(entryId, listId, btn) {
       if (countEl) countEl.textContent = `(${count})`;
     }
 
-    btn.textContent = alreadyIn ? "!" : "✓";
-    btn.disabled = true;
+    btn.textContent = alreadyIn ? "!" : "\u2713";
+    (btn as HTMLButtonElement).disabled = true;
 
     setTimeout(() => {
       btn.textContent = "+";
-      btn.disabled = false;
+      (btn as HTMLButtonElement).disabled = false;
 
       if (countEl) countEl.textContent = `(${count})`;
       if (row) row.style.animation = "";
@@ -1862,7 +1978,7 @@ function onAddToExistingList(entryId, listId, btn) {
   }
 }
 
-function onCreateAndAddToList(entryId, name) {
+function onCreateAndAddToList(entryId: string, name: string): void {
   const resolvedName = name || "Untitled list";
 
   if (listNameExists(resolvedName)) {
@@ -1885,15 +2001,16 @@ function onCreateAndAddToList(entryId, name) {
 
   // After the DOM has updated, find the new list's button and show feedback.
   requestAnimationFrame(() => {
-    const newBtn = document.querySelector(
+    const newBtn = document.querySelector<HTMLButtonElement>(
       `.add-to-existing-list-btn[data-list-id="${id}"]`,
     );
+
     if (newBtn) {
-      const row = newBtn.closest(".list-modal-item-row");
+      const row = newBtn.closest<HTMLElement>(".list-modal-item-row");
 
       if (row) row.style.animation = "list-row-flash 0.35s ease-in-out 2";
 
-      newBtn.textContent = "✓";
+      newBtn.textContent = "\u2713";
       newBtn.disabled = true;
 
       setTimeout(() => {
@@ -1906,8 +2023,9 @@ function onCreateAndAddToList(entryId, name) {
   });
 }
 
-function closeListPanelInternal() {
+function closeListPanelInternal(): void {
   const panel = document.getElementById("list-panel");
+
   if (panel) {
     panel.classList.remove("open");
     panel.setAttribute("aria-hidden", "true");

@@ -1,9 +1,7 @@
 import { assert, assertEquals } from "@std/assert";
-
-import { state } from "../scripts/state.js";
-
-import { setCoverConsent } from "../scripts/consent.js";
-
+import { state } from "../src/state.ts";
+import { setCoverConsent } from "../src/consent.ts";
+import type { Entry } from "../src/types.ts";
 import {
   buildExpandedHtml,
   collectDistinctValues,
@@ -14,9 +12,9 @@ import {
   PUBLISHER_AUTHOR_TOP_N,
   renderCardHtml,
   row,
-} from "../scripts/render.js";
+} from "../src/render.ts";
 
-// Utilities
+// UTILITIES
 ////////////
 
 function resetState() {
@@ -34,6 +32,8 @@ function resetState() {
     authors: [],
     pricings: [],
     character_options: [],
+    hasCharacterOptions: false,
+    official: false,
     upcoming: false,
     excludeUnspecifiedLevel: false,
     excludeUnspecifiedParty: false,
@@ -41,6 +41,8 @@ function resetState() {
     lmax: null,
     pmin: null,
     pmax: null,
+    dmin: null,
+    dmax: null,
   };
   state.sort = "title";
   state.sortReverse = false;
@@ -49,7 +51,7 @@ function resetState() {
   state.expandedCardId = null;
 }
 
-function makeEntry(overrides = {}) {
+function makeEntry(overrides: Partial<Entry> = {}): Entry {
   return {
     id: "test-entry",
     title: "Test Entry",
@@ -75,7 +77,7 @@ function makeEntry(overrides = {}) {
 }
 
 // FILTER_HIDDEN_COUNT
-////////////////////
+//////////////////////
 
 Deno.test("filterHiddenCount: returns 0 when total equals visible", () => {
   assertEquals(filterHiddenCount(8, 8), 0);
@@ -129,7 +131,7 @@ Deno.test("row: wraps in a tr element", () => {
 });
 
 // COMPUTE_PAGE_NUMBERS
-/////////////////////
+///////////////////////
 
 Deno.test("computePageNumbers: total=1 returns [1]", () => {
   assertEquals(computePageNumbers(1, 1), [1]);
@@ -191,7 +193,7 @@ Deno.test("computePageNumbers: window around current is correct", () => {
 });
 
 // COLLECT_DISTINCT_VALUES
-////////////////////////
+//////////////////////////
 
 Deno.test("collectDistinctValues: non-array field returns sorted unique values", () => {
   resetState();
@@ -260,7 +262,7 @@ Deno.test("collectDistinctValues: empty array field yields no values", () => {
 });
 
 // COLLECT_TOP_VALUES
-///////////////////
+/////////////////////
 
 Deno.test("collectTopValues: FILTER_TOP_N is 8", () => {
   assertEquals(FILTER_TOP_N, 8);
@@ -364,7 +366,7 @@ Deno.test("collectTopValues: empty data returns empty array", () => {
 });
 
 // RENDER_CARD_HTML
-/////////////////
+///////////////////
 
 Deno.test("renderCardHtml: contains data-id attribute", () => {
   const html = renderCardHtml(makeEntry({ id: "the-tomb" }), false);
@@ -484,14 +486,14 @@ Deno.test("renderCardHtml: expanded card has aria-expanded=true and expanded cla
   assert(html.includes("result-card expanded"));
 });
 
-Deno.test("renderCardHtml: collapsed card has expand icon ▶", () => {
+Deno.test("renderCardHtml: collapsed card has expand icon \u25b6", () => {
   const html = renderCardHtml(makeEntry(), false);
-  assert(html.includes("▶"));
+  assert(html.includes("\u25b6"));
 });
 
-Deno.test("renderCardHtml: expanded card has icon ▶ (CSS rotates it)", () => {
+Deno.test("renderCardHtml: expanded card has icon \u25b6 (CSS rotates it)", () => {
   const html = renderCardHtml(makeEntry(), true);
-  assert(html.includes("▶"));
+  assert(html.includes("\u25b6"));
 });
 
 Deno.test("renderCardHtml: expanded card contains card-expanded div", () => {
@@ -505,7 +507,7 @@ Deno.test("renderCardHtml: card-expanded div always present (shown/hidden via CS
 });
 
 // BUILD_EXPANDED_HTML
-////////////////////
+//////////////////////
 
 // desc renders in renderCardHtml (.card-description-snippet), not here.
 Deno.test("buildExpandedHtml: does not render description (handled in renderCardHtml)", () => {
@@ -763,7 +765,7 @@ Deno.test("buildExpandedHtml: included_in section resolves title from state.data
   state.data = [{
     id: "shadows-and-steel-zine-1",
     title: "Shadows & Steel #1",
-  }];
+  } as Entry];
 
   const entry = makeEntry({ included_in: ["shadows-and-steel-zine-1"] });
   const html = buildExpandedHtml(entry, false);
@@ -779,7 +781,9 @@ Deno.test("buildExpandedHtml: no included_in section when field absent", () => {
 
 Deno.test("buildExpandedHtml: children section resolves title from state.data", () => {
   resetState();
-  state.data = [{ id: "the-sunken-chapel", title: "The Sunken Chapel" }];
+  state.data = [
+    { id: "the-sunken-chapel", title: "The Sunken Chapel" } as Entry,
+  ];
   const entry = makeEntry({ children: ["the-sunken-chapel"] });
   const html = buildExpandedHtml(entry, false);
   assert(html.includes("Includes"));
@@ -803,7 +807,7 @@ Deno.test("buildExpandedHtml: report link encodes entry id in URL", () => {
 });
 
 // RENDER_CARD_HTML: COVER IMAGE CONSENT
-//////////////////////////////////////
+////////////////////////////////////////
 
 Deno.test("renderCardHtml: cover not rendered without consent", () => {
   localStorage.removeItem("tf-cover-consent");
@@ -852,7 +856,7 @@ Deno.test("renderCardHtml: no cover rendered when consent granted but cover is n
 });
 
 // RENDER_CARD_HTML: DIRECT_ID TITLE RENDERING
-///////////////////////////////////////////
+//////////////////////////////////////////////
 
 Deno.test("renderCardHtml: title is an anchor when state.directId does not match entry", () => {
   resetState();
@@ -883,11 +887,11 @@ Deno.test("renderCardHtml: Copy link button is present", () => {
 });
 
 // BUILD_EXPANDED_HTML: INCLUDES / SECTION ORDERING
-/////////////////////////////////////////////////
+///////////////////////////////////////////////////
 
 Deno.test("buildExpandedHtml: children section label is 'Includes'", () => {
   resetState();
-  state.data = [{ id: "child-1", title: "Child Entry" }];
+  state.data = [{ id: "child-1", title: "Child Entry" } as Entry];
   const html = buildExpandedHtml(makeEntry({ children: ["child-1"] }), false);
   assert(html.includes("Includes"));
   assert(!html.includes("Contents"));
@@ -896,7 +900,7 @@ Deno.test("buildExpandedHtml: children section label is 'Includes'", () => {
 Deno.test("buildExpandedHtml: Links section appears after Includes section", () => {
   resetState();
 
-  state.data = [{ id: "child-1", title: "Child" }];
+  state.data = [{ id: "child-1", title: "Child" } as Entry];
 
   const entry = makeEntry({
     children: ["child-1"],

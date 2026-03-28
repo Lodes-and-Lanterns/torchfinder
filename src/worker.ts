@@ -1,16 +1,16 @@
-import { flushBuffer, processChunk } from "./scripts/worker-utils.js";
+import { flushBuffer, processChunk } from "./worker-utilities.ts";
 
 const BATCH_SIZE = 50;
 
-self.onmessage = async ({ data: { url } }) => {
+self.onmessage = async ({ data: { url } }: MessageEvent<{ url: string }>) => {
   try {
     const response = await fetch(url);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
     let buffer = "";
-    let batch = [];
+    let batch: object[] = [];
 
-    const reader = response.body.pipeThrough(new TextDecoderStream())
+    const reader = response.body!.pipeThrough(new TextDecoderStream())
       .getReader();
 
     while (true) {
@@ -38,6 +38,6 @@ self.onmessage = async ({ data: { url } }) => {
 
     self.postMessage({ type: "done" });
   } catch (err) {
-    self.postMessage({ type: "error", message: err.message });
+    self.postMessage({ type: "error", message: (err as Error).message });
   }
 };

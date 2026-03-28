@@ -1,4 +1,5 @@
-import LZString from "../dependencies/lz-string.js";
+import LZString from "lz-string";
+import type { SavedList } from "./types.ts";
 
 const STORAGE_KEY = "torchfinder-lists";
 
@@ -7,14 +8,16 @@ const STORAGE_KEY = "torchfinder-lists";
 
 // Encodes an ordered array of entry IDs to a versioned, URL-safe compressed string.
 // Uses LZ-string compression, which significantly reduces URL length for larger lists.
-export function encodeListPayload(ids) {
+export function encodeListPayload(ids: string[]): string {
   if (!ids.length) return "v1:";
   return "v1:" + LZString.compressToEncodedURIComponent(ids.join(","));
 }
 
 // Decodes a versioned payload back to an array of entry IDs.
 // Returns an empty array for unknown versions or malformed input.
-export function decodeListPayload(payload) {
+export function decodeListPayload(
+  payload: string | null | undefined,
+): string[] {
   if (!payload || !payload.startsWith("v1:")) return [];
 
   const compressed = payload.slice(3);
@@ -31,7 +34,7 @@ export function decodeListPayload(payload) {
 // STORAGE
 //////////
 
-export function getLists() {
+export function getLists(): SavedList[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : [];
@@ -40,16 +43,17 @@ export function getLists() {
   }
 }
 
-function setLists(lists) {
+function setLists(lists: SavedList[]): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(lists));
 }
 
-export function getList(id) {
+export function getList(id: string | null | undefined): SavedList | null {
+  if (!id) return null;
   return getLists().find((l) => l.id === id) || null;
 }
 
 // Creates or updates a list. Sets timestamps appropriately.
-export function saveList(list) {
+export function saveList(list: SavedList): void {
   const lists = getLists();
   const idx = lists.findIndex((l) => l.id === list.id);
   const now = new Date().toISOString();
@@ -73,12 +77,13 @@ export function saveList(list) {
   setLists(lists);
 }
 
-export function deleteList(id) {
+export function deleteList(id: string | null | undefined): void {
+  if (!id) return;
   setLists(getLists().filter((l) => l.id !== id));
 }
 
 // Updates lastAccessedAt without changing other fields.
-export function touchList(id) {
+export function touchList(id: string): void {
   const lists = getLists();
   const idx = lists.findIndex((l) => l.id === id);
 
@@ -88,17 +93,20 @@ export function touchList(id) {
   }
 }
 
-export function generateListId() {
+export function generateListId(): string {
   return Math.random().toString(36).slice(2, 10);
 }
 
-export function clearAllLists() {
+export function clearAllLists(): void {
   setLists([]);
 }
 
 // Returns true if any saved list has the given name (case-insensitive),
 // optionally ignoring a specific list ID (used when renaming).
-export function listNameExists(name, excludeId = null) {
+export function listNameExists(
+  name: string,
+  excludeId: string | null = null,
+): boolean {
   const normalized = (name || "").trim().toLowerCase();
 
   return getLists().some(
@@ -113,7 +121,7 @@ export function listNameExists(name, excludeId = null) {
 // Merges an incoming list array into localStorage.
 // For ID collisions, keeps whichever has the newer updatedAt timestamp.
 // Returns the number of lists added or updated.
-export function importLists(incoming) {
+export function importLists(incoming: unknown): number {
   if (!Array.isArray(incoming)) return 0;
 
   const existing = getLists();
@@ -142,7 +150,10 @@ export function importLists(incoming) {
 
 // Compares the current in-memory list state against localStorage.
 // Returns 'saved', 'modified', or 'unsaved'.
-export function getListSavedState(id, entries) {
+export function getListSavedState(
+  id: string | null,
+  entries: string[],
+): "saved" | "modified" | "unsaved" {
   if (!id) return "unsaved";
 
   const saved = getList(id);

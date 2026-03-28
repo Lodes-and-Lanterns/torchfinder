@@ -1,9 +1,11 @@
-export const DATA_URL = "dist/torchfinder-dataset.jsonl";
+import type { AppState } from "./types.ts";
+
+export const DATA_URL = "/dist/torchfinder-dataset.jsonl";
 export const PAGE_SIZE = 25;
 export const SEARCH_DEBOUNCE_MS = 200;
 export const SITE_URL = "https://torchfinder.lodesandlanterns.com";
 
-export const state = {
+export const state: AppState = {
   data: null,
   filtered: [],
   query: "",

@@ -1,13 +1,16 @@
-export function debounce(fn, ms) {
-  let timer;
+export function debounce(
+  fn: (...args: unknown[]) => void,
+  ms: number,
+): (...args: unknown[]) => void {
+  let timer: ReturnType<typeof setTimeout> | undefined;
 
-  return function (...args) {
+  return function (...args: unknown[]) {
     clearTimeout(timer);
-    timer = setTimeout(() => fn.apply(this, args), ms);
+    timer = setTimeout(() => fn(...args), ms);
   };
 }
 
-export function escapeHtml(str) {
+export function escapeHtml(str: string | null | undefined): string {
   return String(str ?? "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -15,7 +18,7 @@ export function escapeHtml(str) {
     .replace(/"/g, "&quot;");
 }
 
-export function slugToLabel(slug) {
+export function slugToLabel(slug: string | null | undefined): string {
   if (!slug) return "";
 
   return slug
@@ -24,7 +27,7 @@ export function slugToLabel(slug) {
     .join(" ");
 }
 
-export const LANGUAGE_NAMES = {
+export const LANGUAGE_NAMES: Record<string, string> = {
   en: "English",
   es: "Spanish",
   fr: "French",
@@ -42,29 +45,35 @@ export const LANGUAGE_NAMES = {
   ru: "Russian",
 };
 
-export function langName(code) {
+export function langName(code: string): string {
   return LANGUAGE_NAMES[code] || code.toUpperCase();
 }
 
-export function formatLevelRange(min, max) {
+export function formatLevelRange(
+  min: number | null | undefined,
+  max: number | null | undefined,
+): string | null {
   if (min == null && max == null) return null;
   if (min === max) return `Level ${min}`;
   if (min == null) return `Up to level ${max}`;
   if (max == null) return `Level ${min}+`;
 
-  return `Levels ${min}–${max}`;
+  return `Levels ${min}\u2013${max}`;
 }
 
-export function formatPartySize(min, max) {
+export function formatPartySize(
+  min: number | null | undefined,
+  max: number | null | undefined,
+): string | null {
   if (min == null && max == null) return null;
   if (min === max) return `${min} players`;
   if (min == null) return `Up to ${max} players`;
   if (max == null) return `${min}+ players`;
 
-  return `${min}–${max} players`;
+  return `${min}\u2013${max} players`;
 }
 
-export function formatDateShort(dateStr) {
+export function formatDateShort(dateStr: string | null | undefined): string {
   if (!dateStr) return "";
 
   const parts = dateStr.split("-");
@@ -73,7 +82,7 @@ export function formatDateShort(dateStr) {
   return `${parseInt(parts[1], 10)}/${parts[0]}`;
 }
 
-export function formatDate(dateStr) {
+export function formatDate(dateStr: string | null | undefined): string {
   if (!dateStr) return "";
 
   const parts = dateStr.split("-");
@@ -99,7 +108,7 @@ export function formatDate(dateStr) {
   });
 }
 
-export function isUpcoming(dateStr) {
+export function isUpcoming(dateStr: string | null | undefined): boolean {
   if (!dateStr) return false;
 
   const parts = dateStr.split("-");

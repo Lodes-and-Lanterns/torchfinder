@@ -1,7 +1,7 @@
 import { assertEquals } from "@std/assert";
-import { state } from "../scripts/state.js";
-import { buildUrlParams, parseUrlParams } from "../scripts/url.js";
-import { encodeListPayload } from "../scripts/lists.js";
+import { state } from "../src/state.ts";
+import { buildUrlParams, parseUrlParams } from "../src/url.ts";
+import { encodeListPayload } from "../src/lists.ts";
 
 // Utilities
 ////////////
@@ -43,12 +43,12 @@ function resetState() {
   };
 }
 
-function p(search) {
+function p(search: string) {
   return new URLSearchParams(search);
 }
 
 // BUILD_URL_PARAMS
-/////////////////
+///////////////////
 
 Deno.test("buildUrlParams: default state produces empty params", () => {
   resetState();
@@ -310,6 +310,7 @@ Deno.test("buildUrlParams: directId + listMode emits id and list params", () => 
   assertEquals(params.get("list-name"), "My List");
   assertEquals(params.get("list-description"), "A cool list");
   assertEquals(params.get("list-id"), "abc12345");
+
   // Filter params must NOT appear in directId mode
   assertEquals(params.has("q"), false);
   assertEquals(params.has("category"), false);
@@ -351,7 +352,7 @@ Deno.test("buildUrlParams: list mode without name/description/id omits those key
 });
 
 // PARSE_URL_PARAMS
-/////////////////
+///////////////////
 
 Deno.test("parseUrlParams: empty params resets to default state", () => {
   resetState();
@@ -566,7 +567,7 @@ Deno.test("parseUrlParams: list mode + id restores directId too", () => {
 });
 
 // BUILD_URL_PARAMS / PARSE_URL_PARAMS ROUND-TRIPS
-//////////////////////////////////////////////
+//////////////////////////////////////////////////
 
 Deno.test("round-trip: filter-mode state survives encode-decode", () => {
   resetState();
@@ -592,6 +593,7 @@ Deno.test("round-trip: filter-mode state survives encode-decode", () => {
 
   // Wipe state, then restore via parseUrlParams
   resetState();
+
   parseUrlParams(params);
 
   assertEquals(state.query, "dungeon");

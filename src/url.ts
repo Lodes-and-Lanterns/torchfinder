@@ -1,9 +1,9 @@
-import { state } from "./state.js";
-import { decodeListPayload, encodeListPayload } from "./lists.js";
+import { state } from "./state.ts";
+import { decodeListPayload, encodeListPayload } from "./lists.ts";
 
 export function parseUrlParams(
   params = new URLSearchParams(globalThis.location.search),
-) {
+): void {
   const listPayload = params.get("list");
   const directId = params.get("id") || null;
 
@@ -31,7 +31,7 @@ export function parseUrlParams(
   const parsedPage = parseInt(params.get("page") || "1", 10);
   state.page = isNaN(parsedPage) ? 1 : Math.max(1, parsedPage);
 
-  function parseArray(key) {
+  function parseArray(key: string): string[] {
     const val = params.get(key);
     return val ? val.split(",").filter(Boolean) : [];
   }
@@ -60,7 +60,7 @@ export function parseUrlParams(
   state.filters.excludeUnspecifiedParty =
     params.get("exclude_party") === "true";
 
-  function parseIntParam(key) {
+  function parseIntParam(key: string): number | null {
     const s = params.get(key);
 
     if (s === null || s === "") return null;
@@ -75,7 +75,7 @@ export function parseUrlParams(
   state.filters.pmin = parseIntParam("pmin");
   state.filters.pmax = parseIntParam("pmax");
 
-  function parseYearMonth(key) {
+  function parseYearMonth(key: string): string | null {
     const s = params.get(key);
     return s && /^\d{4}-\d{2}$/.test(s) ? s : null;
   }
@@ -84,14 +84,13 @@ export function parseUrlParams(
   state.filters.dmax = parseYearMonth("dmax");
 }
 
-export function buildUrlParams() {
+export function buildUrlParams(): URLSearchParams {
   const params = new URLSearchParams();
 
   if (state.directId) {
     params.set("id", state.directId);
 
-    // If we're also in list mode, include list context so refreshing restores it.
-    if (state.listMode) {
+    if (state.listMode) { // If we're also in list mode, include list context so refreshing restores it.
       params.set("list", encodeListPayload(state.listEntries));
 
       if (state.listName) params.set("list-name", state.listName);
@@ -106,8 +105,7 @@ export function buildUrlParams() {
     return params;
   }
 
-  // List mode only: emit list params, no filter params.
-  if (state.listMode) {
+  if (state.listMode) { // List mode only: emit list params, no filter params.
     params.set("list", encodeListPayload(state.listEntries));
 
     if (state.listName) params.set("list-name", state.listName);
@@ -126,7 +124,7 @@ export function buildUrlParams() {
   if (state.sortReverse) params.set("reverse", "true");
   if (state.page > 1) params.set("page", String(state.page));
 
-  function setArray(key, arr) {
+  function setArray(key: string, arr: string[]): void {
     if (arr.length) params.set(key, arr.join(","));
   }
 
@@ -180,7 +178,7 @@ export function buildUrlParams() {
   return params;
 }
 
-export function updateUrl() {
+export function updateUrl(): void {
   const params = buildUrlParams();
   const qs = params.toString();
   const newUrl = qs

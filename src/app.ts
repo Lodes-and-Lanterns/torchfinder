@@ -1,18 +1,13 @@
-// =============================================================================
-// TORCHFINDER: app.js
-// Entry point. Imports modules from scripts/, wires up the DOM, and boots.
-// =============================================================================
+// TORCHFINDER: app.ts
+// Entry point. Imports modules from src/, wires up the DOM, and boots.
 
-import { DATA_URL, state } from "./scripts/state.js";
-
-import { parseUrlParams } from "./scripts/url.js";
-
-import {
-  applyFilters,
-  clearShuffleCache,
-  sortFiltered,
-} from "./scripts/filters.js";
-
+import { DATA_URL, state } from "./state.ts";
+import { parseUrlParams } from "./url.ts";
+import { applyFilters, clearShuffleCache, sortFiltered } from "./filters.ts";
+import { clearAllLists, getLists, importLists } from "./lists.ts";
+import { createMonthPicker } from "./month-picker.ts";
+import { getCoverConsent, setCoverConsent } from "./consent.ts";
+import type { PillContainer } from "./render.ts";
 import {
   buildPills,
   closeAddToListModal,
@@ -24,14 +19,7 @@ import {
   showLoading,
   syncFilterControlStates,
   syncPillFade,
-} from "./scripts/render.js";
-
-import { clearAllLists, getLists, importLists } from "./scripts/lists.js";
-
-import { createMonthPicker } from "./scripts/month-picker.js";
-
-import { getCoverConsent, setCoverConsent } from "./scripts/consent.js";
-
+} from "./render.ts";
 import {
   closeFilterPanel,
   closeListPanel,
@@ -42,12 +30,12 @@ import {
   openFilterPanel,
   openListPanel,
   trapFocus,
-} from "./scripts/handlers.js";
+} from "./handlers.ts";
 
-function init() {
+function init(): void {
   parseUrlParams();
 
-  const sidebar = document.getElementById("filter-sidebar");
+  const sidebar = document.getElementById("filter-sidebar")!;
   const isDesktop = () => globalThis.matchMedia("(min-width: 801px)").matches;
 
   if (isDesktop()) {
@@ -57,11 +45,11 @@ function init() {
   }
 
   // Bind: mobile filter toggle
-  document.getElementById("mobile-filter-toggle").addEventListener(
+  document.getElementById("mobile-filter-toggle")!.addEventListener(
     "click",
     () => {
       const expanded =
-        document.getElementById("mobile-filter-toggle").getAttribute(
+        document.getElementById("mobile-filter-toggle")!.getAttribute(
           "aria-expanded",
         ) === "true";
 
@@ -75,17 +63,17 @@ function init() {
   if (closeBtn) closeBtn.addEventListener("click", closeFilterPanel);
 
   // Bind: filter overlay click closes filter panel
-  document.getElementById("filter-overlay").addEventListener(
+  document.getElementById("filter-overlay")!.addEventListener(
     "click",
     closeFilterPanel,
   );
 
   // Bind: list panel toggles
-  function isListPanelOpen() {
-    return document.getElementById("list-panel").classList.contains("open");
+  function isListPanelOpen(): boolean {
+    return document.getElementById("list-panel")!.classList.contains("open");
   }
 
-  document.getElementById("mobile-list-toggle").addEventListener(
+  document.getElementById("mobile-list-toggle")!.addEventListener(
     "click",
     () => {
       if (isListPanelOpen()) closeListPanel();
@@ -93,7 +81,7 @@ function init() {
     },
   );
 
-  document.getElementById("list-panel-toggle-mobile").addEventListener(
+  document.getElementById("list-panel-toggle-mobile")!.addEventListener(
     "click",
     () => {
       if (isListPanelOpen()) closeListPanel();
@@ -105,23 +93,25 @@ function init() {
   );
 
   // Bind: close list panel button
-  document.getElementById("close-list-panel").addEventListener(
+  document.getElementById("close-list-panel")!.addEventListener(
     "click",
     closeListPanel,
   );
 
   // Bind: export all lists
-  document.getElementById("export-lists-btn").addEventListener(
+  document.getElementById("export-lists-btn")!.addEventListener(
     "click",
     async () => {
       const data = getLists();
       const json = JSON.stringify(data, null, 2);
-      const btn = document.getElementById("export-lists-btn");
+      const btn = document.getElementById("export-lists-btn")!;
       const prev = btn.textContent;
 
       try {
         if ("showSaveFilePicker" in window) {
-          const handle = await globalThis.showSaveFilePicker({
+          const handle = await (globalThis as unknown as {
+            showSaveFilePicker(opts: unknown): Promise<FileSystemFileHandle>;
+          }).showSaveFilePicker({
             suggestedName: "torchfinder-lists.json",
             types: [{
               description: "JSON file",
@@ -160,7 +150,7 @@ function init() {
           btn.textContent = prev;
         }, 2000);
       } catch (e) {
-        if (e.name !== "AbortError") {
+        if ((e as Error).name !== "AbortError") {
           alert("Export failed.");
         }
       }
@@ -168,26 +158,26 @@ function init() {
   );
 
   // Bind: import lists
-  document.getElementById("import-lists-btn").addEventListener("click", () => {
+  document.getElementById("import-lists-btn")!.addEventListener("click", () => {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "application/json,.json";
 
     input.addEventListener("change", () => {
-      const file = input.files[0];
+      const file = input.files![0];
       if (!file) return;
 
       const reader = new FileReader();
       reader.onload = (e) => {
         try {
-          const data = JSON.parse(e.target.result);
+          const data = JSON.parse((e.target as FileReader).result as string);
           if (!Array.isArray(data)) throw new Error("not an array");
 
           const count = importLists(data);
 
           renderListPanel();
 
-          const btn = document.getElementById("import-lists-btn");
+          const btn = document.getElementById("import-lists-btn")!;
           const prev = btn.textContent;
 
           btn.textContent = `Imported ${count}`;
@@ -205,7 +195,7 @@ function init() {
   });
 
   // Bind: delete all lists
-  document.getElementById("delete-all-lists-btn").addEventListener(
+  document.getElementById("delete-all-lists-btn")!.addEventListener(
     "click",
     () => {
       if (
@@ -220,19 +210,20 @@ function init() {
   );
 
   // Bind: list overlay click closes list panel
-  document.getElementById("list-overlay").addEventListener(
+  document.getElementById("list-overlay")!.addEventListener(
     "click",
     closeListPanel,
   );
 
   // Bind: modal close button and backdrop
-  document.getElementById("close-add-to-list-modal").addEventListener(
+  document.getElementById("close-add-to-list-modal")!.addEventListener(
     "click",
     closeAddToListModal,
   );
 
-  document.querySelector("#add-to-list-modal .list-modal-backdrop")
-    .addEventListener("click", closeAddToListModal);
+  document.querySelector<HTMLElement>(
+    "#add-to-list-modal .list-modal-backdrop",
+  )!.addEventListener("click", closeAddToListModal);
 
   // Floating tooltip for tags with data-tooltip
   const cardTooltip = document.createElement("div");
@@ -240,8 +231,8 @@ function init() {
   cardTooltip.hidden = true;
   document.body.appendChild(cardTooltip);
 
-  function showCardTooltip(tag) {
-    cardTooltip.textContent = tag.dataset.tip;
+  function showCardTooltip(tag: HTMLElement): void {
+    cardTooltip.textContent = tag.dataset.tip!;
     cardTooltip.hidden = false;
 
     const rect = tag.getBoundingClientRect();
@@ -260,30 +251,39 @@ function init() {
     cardTooltip.style.top = top + "px";
   }
 
-  function hideCardTooltip() {
+  function hideCardTooltip(): void {
     cardTooltip.hidden = true;
   }
 
   document.addEventListener("mouseover", (e) => {
-    const tag = e.target.closest(".card-tag[data-tip]");
+    const tag = (e.target as Element).closest<HTMLElement>(
+      ".card-tag[data-tip]",
+    );
+
     if (tag) showCardTooltip(tag);
   });
 
   document.addEventListener("mouseout", (e) => {
-    if (e.target.closest(".card-tag[data-tip]")) hideCardTooltip();
+    if ((e.target as Element).closest(".card-tag[data-tip]")) hideCardTooltip();
   });
 
   document.addEventListener("focusin", (e) => {
-    const tag = e.target.closest(".card-tag[data-tip]");
+    const tag = (e.target as Element).closest<HTMLElement>(
+      ".card-tag[data-tip]",
+    );
+
     if (tag) showCardTooltip(tag);
   });
 
   document.addEventListener("focusout", (e) => {
-    if (e.target.closest(".card-tag[data-tip]")) hideCardTooltip();
+    if ((e.target as Element).closest(".card-tag[data-tip]")) hideCardTooltip();
   });
 
   document.addEventListener("click", (e) => {
-    const tag = e.target.closest(".card-tag[data-tip]");
+    const tag = (e.target as Element).closest<HTMLElement>(
+      ".card-tag[data-tip]",
+    );
+
     if (tag) {
       cardTooltip.hidden ? showCardTooltip(tag) : hideCardTooltip();
     } else {
@@ -308,32 +308,36 @@ function init() {
   });
 
   // Bind: filter group toggles
-  document.querySelectorAll(".filter-group-toggle").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const expanded = btn.getAttribute("aria-expanded") === "true";
-      const open = !expanded;
+  document.querySelectorAll<HTMLElement>(".filter-group-toggle").forEach(
+    (btn) => {
+      btn.addEventListener("click", () => {
+        const expanded = btn.getAttribute("aria-expanded") === "true";
+        const open = !expanded;
 
-      btn.setAttribute("aria-expanded", String(open));
+        btn.setAttribute("aria-expanded", String(open));
 
-      const content = btn.nextElementSibling;
-      content.removeAttribute("hidden");
-      content.style.display = open ? "block" : "none";
+        const content = btn.nextElementSibling as HTMLElement | null;
+        if (!content) return;
+        content.removeAttribute("hidden");
+        content.style.display = open ? "block" : "none";
 
-      if (open) {
-        const pillGroup = content.querySelector(".pill-group");
-        if (pillGroup) syncPillFade(pillGroup);
-      }
-    });
-  });
+        if (open) {
+          const pillGroup = content.querySelector<PillContainer>(".pill-group");
+          if (pillGroup) syncPillFade(pillGroup);
+        }
+      });
+    },
+  );
 
   // Bind: clear filters
-  document.getElementById("clear-filters").addEventListener(
+  document.getElementById("clear-filters")!.addEventListener(
     "click",
     onClearFilters,
   );
 
-  function resetToHome(e) {
+  function resetToHome(e: Event): void {
     e.preventDefault();
+
     state.directId = null;
     state.listMode = false;
     state.listId = null;
@@ -341,21 +345,25 @@ function init() {
     state.listDescription = "";
     state.listEntries = [];
     state.listSynced = false;
+
     renderResults();
   }
 
   // Bind: back-to-list button (exits entry view, returns to current list)
-  document.getElementById("back-to-list").addEventListener("click", (e) => {
+  document.getElementById("back-to-list")!.addEventListener("click", (e) => {
     e.preventDefault();
     state.directId = null;
     renderResults();
   });
 
   // Bind: back-to-all button (exits direct-ID mode and list mode)
-  document.getElementById("back-to-all").addEventListener("click", resetToHome);
+  document.getElementById("back-to-all")!.addEventListener(
+    "click",
+    resetToHome,
+  );
 
   // Bind: random content button
-  function onRandomContent() {
+  function onRandomContent(): void {
     if (!state.data || state.data.length === 0) return;
 
     const entry = state.data[Math.floor(Math.random() * state.data.length)];
@@ -371,17 +379,17 @@ function init() {
     renderResults();
   }
 
-  document.getElementById("random-content-btn").addEventListener(
+  document.getElementById("random-content-btn")!.addEventListener(
     "click",
     onRandomContent,
   );
-  document.getElementById("random-content-btn-mobile").addEventListener(
+  document.getElementById("random-content-btn-mobile")!.addEventListener(
     "click",
     onRandomContent,
   );
 
   // Bind: Torchfinder title link (clear all filters + exit list/direct-ID mode)
-  document.getElementById("home-link").addEventListener("click", (e) => {
+  document.getElementById("home-link")!.addEventListener("click", (e) => {
     e.preventDefault();
 
     state.directId = null;
@@ -396,15 +404,17 @@ function init() {
   });
 
   // Bind: search input + clear button
-  const searchInput = document.getElementById("search-input");
-  const searchClear = document.getElementById("search-clear");
+  const searchInput = document.getElementById(
+    "search-input",
+  ) as HTMLInputElement;
+  const searchClear = document.getElementById("search-clear")!;
 
-  function updateSearchClear() {
+  function updateSearchClear(): void {
     searchClear.hidden = !searchInput.value;
   }
 
   searchInput.addEventListener("input", (e) => {
-    debouncedSearch(e.target.value);
+    debouncedSearch((e.target as HTMLInputElement).value);
     updateSearchClear();
   });
 
@@ -416,13 +426,13 @@ function init() {
   });
 
   // Bind: sort select
-  document.getElementById("sort-select").addEventListener(
+  document.getElementById("sort-select")!.addEventListener(
     "change",
-    (e) => onSortChange(e.target.value),
+    (e) => onSortChange((e.target as HTMLSelectElement).value),
   );
 
   // Bind: sort reverse
-  document.getElementById("sort-reverse").addEventListener("click", () => {
+  document.getElementById("sort-reverse")!.addEventListener("click", () => {
     state.sortReverse = !state.sortReverse;
     syncFilterControlStates();
     sortFiltered();
@@ -431,7 +441,7 @@ function init() {
   });
 
   // Bind: reshuffle button (shuffle sort only)
-  document.getElementById("sort-reshuffle").addEventListener("click", () => {
+  document.getElementById("sort-reshuffle")!.addEventListener("click", () => {
     clearShuffleCache();
     state.sortReverse = false;
     state.page = 1;
@@ -441,26 +451,33 @@ function init() {
   });
 
   // Bind: official-only toggle
-  document.getElementById("toggle-official").addEventListener("change", (e) => {
-    state.filters.official = e.target.checked;
-    state.page = 1;
-    applyFilters();
-    renderResults();
-  });
-
-  // Bind: upcoming toggle
-  document.getElementById("toggle-upcoming").addEventListener("change", (e) => {
-    state.filters.upcoming = e.target.checked;
-    state.page = 1;
-    applyFilters();
-    renderResults();
-  });
-
-  // Bind: has-character-options checkbox
-  document.getElementById("has-character-options").addEventListener(
+  document.getElementById("toggle-official")!.addEventListener(
     "change",
     (e) => {
-      state.filters.hasCharacterOptions = e.target.checked;
+      state.filters.official = (e.target as HTMLInputElement).checked;
+      state.page = 1;
+      applyFilters();
+      renderResults();
+    },
+  );
+
+  // Bind: upcoming toggle
+  document.getElementById("toggle-upcoming")!.addEventListener(
+    "change",
+    (e) => {
+      state.filters.upcoming = (e.target as HTMLInputElement).checked;
+      state.page = 1;
+      applyFilters();
+      renderResults();
+    },
+  );
+
+  // Bind: has-character-options checkbox
+  document.getElementById("has-character-options")!.addEventListener(
+    "change",
+    (e) => {
+      state.filters.hasCharacterOptions =
+        (e.target as HTMLInputElement).checked;
       state.page = 1;
       applyFilters();
       renderResults();
@@ -468,20 +485,22 @@ function init() {
   );
 
   // Bind: exclude-unspecified checkboxes
-  document.getElementById("exclude-unspecified-level").addEventListener(
+  document.getElementById("exclude-unspecified-level")!.addEventListener(
     "change",
     (e) => {
-      state.filters.excludeUnspecifiedLevel = e.target.checked;
+      state.filters.excludeUnspecifiedLevel =
+        (e.target as HTMLInputElement).checked;
       state.page = 1;
       applyFilters();
       renderResults();
     },
   );
 
-  document.getElementById("exclude-unspecified-party").addEventListener(
+  document.getElementById("exclude-unspecified-party")!.addEventListener(
     "change",
     (e) => {
-      state.filters.excludeUnspecifiedParty = e.target.checked;
+      state.filters.excludeUnspecifiedParty =
+        (e.target as HTMLInputElement).checked;
       state.page = 1;
       applyFilters();
       renderResults();
@@ -490,71 +509,90 @@ function init() {
 
   // Bind: level / party size range inputs
   ["level-min", "level-max", "party-min", "party-max"].forEach((id) => {
-    document.getElementById(id).addEventListener("change", onRangeChange);
+    document.getElementById(id)!.addEventListener("change", onRangeChange);
   });
 
   // Init: publication date range pickers (custom month+year picker)
 
-  const toPicker = createMonthPicker(document.getElementById("date-to"), {
-    isStart: false,
-    getOtherValue: () => state.filters.dmin,
-    onSelect(value) {
-      state.filters.dmax = value;
-      state.page = 1;
-      applyFilters();
-      renderResults();
+  const toPicker = createMonthPicker(
+    document.getElementById("date-to") as HTMLInputElement,
+    {
+      isStart: false,
+      getOtherValue: () => state.filters.dmin,
+      onSelect(value) {
+        state.filters.dmax = value;
+        state.page = 1;
+        applyFilters();
+        renderResults();
+      },
     },
-  });
+  );
 
-  createMonthPicker(document.getElementById("date-from"), { // from picker
-    isStart: true,
-    getOtherValue: () => state.filters.dmax,
-    onSelect(value) {
-      state.filters.dmin = value;
+  createMonthPicker(
+    document.getElementById("date-from") as HTMLInputElement,
+    { // from picker
+      isStart: true,
+      getOtherValue: () => state.filters.dmax,
+      onSelect(value) {
+        state.filters.dmin = value;
 
-      // If the end is now before the new start, clear the end
-      if (state.filters.dmax && state.filters.dmax < value) {
-        state.filters.dmax = null;
-        if (toPicker) toPicker.clear();
-      }
+        // If the end is now before the new start, clear the end
+        if (state.filters.dmax && state.filters.dmax < value) {
+          state.filters.dmax = null;
+          if (toPicker) toPicker.clear();
+        }
 
-      state.page = 1;
-      applyFilters();
-      renderResults();
+        state.page = 1;
+        applyFilters();
+        renderResults();
+      },
     },
-  });
+  );
 
   // Bind: search-within filter inputs
-  document.querySelectorAll(".filter-search-within").forEach((input) => {
-    input.addEventListener("input", (e) => {
-      const targetId = input.dataset.target;
-      const container = document.getElementById(targetId);
-      if (!container || !container._allValues) return;
+  document.querySelectorAll<HTMLInputElement>(".filter-search-within").forEach(
+    (input) => {
+      input.addEventListener("input", (e) => {
+        const targetId = input.dataset.target;
+        const container = targetId
+          ? document.getElementById(targetId) as PillContainer | null
+          : null;
+        if (!container || !container._allValues) return;
 
-      const q = e.target.value.toLowerCase();
-      let visible;
-      if (q === "") {
-        if (container._hasTopNCap && container._topValues) {
-          const selected = state.filters[container._filterKey] || [];
-          const topSet = new Set(container._topValues);
-          const extras = selected.filter((v) =>
-            !topSet.has(v) && container._allValues.includes(v)
-          );
+        const q = (e.target as HTMLInputElement).value.toLowerCase();
+        let visible: string[];
+        if (q === "") {
+          if (container._hasTopNCap && container._topValues) {
+            const selected =
+              (state.filters as unknown as Record<string, string[]>)[
+                container._filterKey!
+              ] || [];
+            const topSet = new Set(container._topValues);
+            const extras = selected.filter((v) =>
+              !topSet.has(v) && container._allValues!.includes(v)
+            );
 
-          visible = [...container._topValues, ...extras];
-        } else {
-          visible = container._allValues;
+            visible = [...container._topValues, ...extras];
+          } else {
+            visible = container._allValues;
+          }
+        } else { // Show all values matching the query
+          visible = container._allValues.filter((v) => {
+            const label = container._labelFn ? container._labelFn(v) : v;
+            return label.toLowerCase().includes(q) ||
+              v.toLowerCase().includes(q);
+          });
         }
-      } else { // Show all values matching the query
-        visible = container._allValues.filter((v) => {
-          const label = container._labelFn ? container._labelFn(v) : v;
-          return label.toLowerCase().includes(q) || v.toLowerCase().includes(q);
-        });
-      }
 
-      buildPills(container, visible, container._filterKey, container._labelFn);
-    });
-  });
+        buildPills(
+          container,
+          visible,
+          container._filterKey,
+          container._labelFn,
+        );
+      });
+    },
+  );
 
   // Responsive: sync sidebar visibility on resize
   const mq = globalThis.matchMedia("(min-width: 801px)");
@@ -565,8 +603,8 @@ function init() {
       sidebar.classList.remove("open");
       sidebar.removeAttribute("aria-hidden");
 
-      document.getElementById("filter-overlay").classList.remove("active");
-      document.getElementById("mobile-filter-toggle").setAttribute(
+      document.getElementById("filter-overlay")!.classList.remove("active");
+      document.getElementById("mobile-filter-toggle")!.setAttribute(
         "aria-expanded",
         "false",
       );
@@ -579,11 +617,11 @@ function init() {
   });
 
   // Cover image consent
-  function syncConsentUI() {
+  function syncConsentUI(): void {
     const consent = getCoverConsent();
-    const banner = document.getElementById("cover-consent-banner");
-    const statusEl = document.getElementById("footer-thumbnail-status");
-    const changeBtn = document.getElementById("footer-thumbnail-change");
+    const banner = document.getElementById("cover-consent-banner")!;
+    const statusEl = document.getElementById("footer-thumbnail-status")!;
+    const changeBtn = document.getElementById("footer-thumbnail-change")!;
 
     if (consent === null) {
       banner.hidden = false;
@@ -596,7 +634,7 @@ function init() {
     }
   }
 
-  document.getElementById("cover-consent-allow").addEventListener(
+  document.getElementById("cover-consent-allow")!.addEventListener(
     "click",
     () => {
       setCoverConsent("granted");
@@ -605,7 +643,7 @@ function init() {
     },
   );
 
-  document.getElementById("cover-consent-deny").addEventListener(
+  document.getElementById("cover-consent-deny")!.addEventListener(
     "click",
     () => {
       setCoverConsent("denied");
@@ -613,14 +651,12 @@ function init() {
     },
   );
 
-  document.getElementById("footer-thumbnail-change").addEventListener(
+  document.getElementById("footer-thumbnail-change")!.addEventListener(
     "click",
     () => {
-      document.getElementById("cover-consent-banner").hidden = false;
-      document.getElementById("cover-consent-banner").scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-      });
+      const banner = document.getElementById("cover-consent-banner")!;
+      banner.hidden = false;
+      banner.scrollIntoView({ behavior: "smooth", block: "nearest" });
     },
   );
 
@@ -631,7 +667,9 @@ function init() {
 
   state.data = [];
 
-  const worker = new Worker("worker.js", { type: "module" });
+  const worker = new Worker(new URL("worker.js", import.meta.url), {
+    type: "module",
+  });
 
   worker.postMessage({ url: DATA_URL });
 
@@ -639,7 +677,7 @@ function init() {
 
   worker.onmessage = ({ data }) => {
     if (data.type === "batch") {
-      state.data.push(...data.entries);
+      state.data!.push(...data.entries);
 
       if (firstBatch) {
         firstBatch = false;

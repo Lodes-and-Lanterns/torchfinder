@@ -1,7 +1,11 @@
-// =============================================================================
-// month-picker.js: Custom month+year range picker
+// MONTH_PICKER: Custom month+year range picker.
 // Exports pure (testable) utilities and createMonthPicker() factory.
-// =============================================================================
+
+import type {
+  MonthPickerInstance,
+  MonthPickerOptions,
+  YearMonth,
+} from "./types.ts";
 
 export const MONTH_NAMES = [
   "Jan",
@@ -23,7 +27,7 @@ export const MONTH_NAMES = [
 
 // Parse a YYYY-MM string into { year, month } (month is 0-indexed).
 // Returns null if the string is invalid.
-export function parseYearMonth(str) {
+export function parseYearMonth(str: unknown): YearMonth | null {
   if (!str || typeof str !== "string") return null;
 
   const m = str.match(/^(\d{4})-(\d{2})$/);
@@ -38,18 +42,23 @@ export function parseYearMonth(str) {
 }
 
 // Format year + 0-indexed month into a YYYY-MM string.
-export function formatYearMonth(year, month) {
+export function formatYearMonth(year: number, month: number): string {
   return `${year}-${String(month + 1).padStart(2, "0")}`;
 }
 
 // Format year + 0-indexed month into a human-readable string, e.g. "Jan 2024".
-export function formatDisplay(year, month) {
+export function formatDisplay(year: number, month: number): string {
   return `${MONTH_NAMES[month]} ${year}`;
 }
 
 // Return true if the cell at (year, month) should be disabled given the other
 // picker's value and whether this is the start picker.
-export function isMonthDisabled(year, month, otherValue, isStart) {
+export function isMonthDisabled(
+  year: number,
+  month: number,
+  otherValue: string | null | undefined,
+  isStart: boolean,
+): boolean {
   if (!otherValue) return false;
 
   const other = parseYearMonth(otherValue);
@@ -62,7 +71,7 @@ export function isMonthDisabled(year, month, otherValue, isStart) {
 }
 
 // CREATE_MONTH_PICKER
-////////////////////
+//////////////////////
 // Attaches a custom month/year popover to an <input>.
 //
 // opts:
@@ -73,25 +82,25 @@ export function isMonthDisabled(year, month, otherValue, isStart) {
 // Returns an instance with setValue(str), clear(), and destroy().
 // The instance is also stored on inputEl._monthPicker for external access.
 export function createMonthPicker(
-  inputEl,
-  { isStart, getOtherValue, onSelect },
-) {
+  inputEl: HTMLInputElement,
+  { isStart, getOtherValue, onSelect }: MonthPickerOptions,
+): MonthPickerInstance {
   let isOpen = false;
   let viewYear = new Date().getFullYear();
   let focusedIdx = 0; // 0-11 cell index
 
-  let popoverEl = null;
-  let yearLabelEl = null;
-  let gridEl = null;
+  let popoverEl: HTMLElement | null = null;
+  let yearLabelEl: HTMLElement | null = null;
+  let gridEl: HTMLElement | null = null;
 
-  // Internal utilities
+  // INTERNAL UTILITIES
   /////////////////////
 
-  function getStoredValue() {
+  function getStoredValue(): string | null {
     return inputEl.dataset.value || null;
   }
 
-  function buildPopover() {
+  function buildPopover(): void {
     popoverEl = document.createElement("div");
     popoverEl.className = "month-picker-popover";
     popoverEl.setAttribute("role", "dialog");
@@ -110,7 +119,7 @@ export function createMonthPicker(
     prevBtn.type = "button";
     prevBtn.className = "month-picker-year-btn";
     prevBtn.setAttribute("aria-label", "Previous year");
-    prevBtn.textContent = "◀";
+    prevBtn.textContent = "\u25c0";
     prevBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       --viewYear;
@@ -126,7 +135,7 @@ export function createMonthPicker(
     nextBtn.type = "button";
     nextBtn.className = "month-picker-year-btn";
     nextBtn.setAttribute("aria-label", "Next year");
-    nextBtn.textContent = "▶";
+    nextBtn.textContent = "\u25b6";
     nextBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       ++viewYear;
@@ -147,7 +156,7 @@ export function createMonthPicker(
       const cell = document.createElement("button");
       cell.type = "button";
       cell.className = "month-picker-cell";
-      cell.dataset.monthIdx = i;
+      cell.dataset.monthIdx = String(i);
       cell.setAttribute("role", "gridcell");
       cell.textContent = MONTH_NAMES[i];
       cell.tabIndex = -1;
@@ -169,13 +178,15 @@ export function createMonthPicker(
     document.body.appendChild(popoverEl);
   }
 
-  function refreshGrid() {
-    if (!popoverEl) return;
-    yearLabelEl.textContent = viewYear;
+  function refreshGrid(): void {
+    if (!popoverEl || !gridEl || !yearLabelEl) return;
+    yearLabelEl.textContent = String(viewYear);
 
     const stored = parseYearMonth(getStoredValue());
     const otherVal = getOtherValue ? getOtherValue() : null;
-    const cells = gridEl.querySelectorAll(".month-picker-cell");
+    const cells = gridEl.querySelectorAll<HTMLButtonElement>(
+      ".month-picker-cell",
+    );
 
     cells.forEach((cell, i) => {
       const isSelected = stored && stored.year === viewYear &&
@@ -183,7 +194,7 @@ export function createMonthPicker(
       const disabled = isMonthDisabled(viewYear, i, otherVal, isStart);
       const isFocused = i === focusedIdx;
 
-      cell.classList.toggle("selected", isSelected);
+      cell.classList.toggle("selected", !!isSelected);
       cell.disabled = disabled;
       cell.setAttribute("aria-disabled", disabled ? "true" : "false");
       cell.setAttribute("aria-selected", isSelected ? "true" : "false");
@@ -191,10 +202,13 @@ export function createMonthPicker(
     });
   }
 
-  function moveFocus(idx) {
+  function moveFocus(idx: number): void {
+    if (!gridEl) return;
     focusedIdx = ((idx % 12) + 12) % 12;
 
-    const cells = gridEl.querySelectorAll(".month-picker-cell");
+    const cells = gridEl.querySelectorAll<HTMLButtonElement>(
+      ".month-picker-cell",
+    );
 
     cells.forEach((cell, i) => {
       cell.tabIndex = i === focusedIdx ? 0 : -1;
@@ -203,7 +217,7 @@ export function createMonthPicker(
     if (cells[focusedIdx]) cells[focusedIdx].focus();
   }
 
-  function selectMonth(monthIdx) {
+  function selectMonth(monthIdx: number): void {
     const value = formatYearMonth(viewYear, monthIdx);
 
     inputEl.dataset.value = value;
@@ -213,19 +227,21 @@ export function createMonthPicker(
     onSelect(value);
   }
 
-  function clearInput() {
+  function clearInput(): void {
     inputEl.dataset.value = "";
     inputEl.value = "";
   }
 
-  function positionPopover() {
+  function positionPopover(): void {
+    if (!popoverEl) return;
     const rect = inputEl.getBoundingClientRect();
 
     popoverEl.style.top = (rect.bottom + 4) + "px";
     popoverEl.style.left = rect.left + "px";
 
-    // Adjust if it overflows the right edge
+    // Adjust for overflow
     requestAnimationFrame(() => {
+      if (!popoverEl) return;
       const pRect = popoverEl.getBoundingClientRect();
 
       if (pRect.right > globalThis.innerWidth - 8) {
@@ -235,10 +251,10 @@ export function createMonthPicker(
     });
   }
 
-  // Open / close
+  // OPEN / CLOSE
   ///////////////
 
-  function open() {
+  function open(): void {
     if (!popoverEl) buildPopover();
 
     const stored = parseYearMonth(getStoredValue());
@@ -249,12 +265,14 @@ export function createMonthPicker(
     refreshGrid();
     positionPopover();
 
-    popoverEl.hidden = false;
+    popoverEl!.hidden = false;
     isOpen = true;
 
     inputEl.setAttribute("aria-expanded", "true");
 
-    const cells = gridEl.querySelectorAll(".month-picker-cell");
+    const cells = gridEl!.querySelectorAll<HTMLButtonElement>(
+      ".month-picker-cell",
+    );
     if (cells[focusedIdx]) cells[focusedIdx].focus();
 
     // Defer so the current click doesn't immediately close it
@@ -263,7 +281,7 @@ export function createMonthPicker(
     }, 0);
   }
 
-  function close() {
+  function close(): void {
     if (!isOpen || !popoverEl) return;
 
     popoverEl.hidden = true;
@@ -276,24 +294,24 @@ export function createMonthPicker(
     inputEl.focus();
   }
 
-  // Event handlers
+  // EVENT HANDLERS
   /////////////////
 
-  function onPopoverFocusOut(e) { // Close when focus moves completely outside the popover (and not to the trigger input).
-    const target = e.relatedTarget;
+  function onPopoverFocusOut(e: FocusEvent): void { // Close when focus moves completely outside the popover (and not to the trigger input).
+    const target = e.relatedTarget as Node | null;
 
-    if (!target || (!popoverEl.contains(target) && target !== inputEl)) {
+    if (!target || (!popoverEl!.contains(target) && target !== inputEl)) {
       close();
     }
   }
 
-  function onOutsideClick(e) {
-    if (!popoverEl.contains(e.target) && e.target !== inputEl) {
+  function onOutsideClick(e: MouseEvent): void {
+    if (!popoverEl!.contains(e.target as Node) && e.target !== inputEl) {
       close();
     }
   }
 
-  function onPopoverKeyDown(e) {
+  function onPopoverKeyDown(e: KeyboardEvent): void {
     switch (e.key) {
       case "ArrowRight":
         e.preventDefault();
@@ -318,10 +336,15 @@ export function createMonthPicker(
       case "Enter":
       case " ": {
         e.preventDefault();
-        const cells = gridEl.querySelectorAll(".month-picker-cell");
+
+        const cells = gridEl!.querySelectorAll<HTMLButtonElement>(
+          ".month-picker-cell",
+        );
+
         if (cells[focusedIdx] && !cells[focusedIdx].disabled) {
           selectMonth(focusedIdx);
         }
+
         break;
       }
 
@@ -333,7 +356,7 @@ export function createMonthPicker(
     }
   }
 
-  // Wire input
+  // WIRE INPUT
   /////////////
 
   inputEl.setAttribute("aria-expanded", "false");
@@ -356,15 +379,15 @@ export function createMonthPicker(
     }
   });
 
-  // Public API
+  // PUBLIC API
   /////////////
 
-  const instance = {
-    setValue(str) {
+  const instance: MonthPickerInstance = {
+    setValue(str: string | null) {
       const parsed = parseYearMonth(str);
 
       if (parsed) {
-        inputEl.dataset.value = str;
+        inputEl.dataset.value = str!;
         inputEl.value = formatDisplay(parsed.year, parsed.month);
       } else {
         clearInput();
@@ -386,7 +409,8 @@ export function createMonthPicker(
     },
   };
 
-  inputEl._monthPicker = instance;
+  (inputEl as HTMLInputElement & { _monthPicker: MonthPickerInstance })
+    ._monthPicker = instance;
 
   return instance;
 }

@@ -1,5 +1,6 @@
 import { assertEquals } from "@std/assert";
-import { state } from "../scripts/state.js";
+import { state } from "../src/state.ts";
+import type { Entry } from "../src/types.ts";
 import {
   applyFilters,
   clearShuffleCache,
@@ -7,9 +8,9 @@ import {
   matchesText,
   rangesOverlap,
   sortFiltered,
-} from "../scripts/filters.js";
+} from "../src/filters.ts";
 
-// Utilities
+// UTILITIES
 ////////////
 
 function resetState() {
@@ -46,7 +47,7 @@ function resetState() {
   state.expandedCardId = null;
 }
 
-function makeEntry(overrides = {}) {
+function makeEntry(overrides: Partial<Entry> = {}): Entry {
   return {
     id: "test-entry",
     title: "Test Entry",
@@ -71,7 +72,7 @@ function makeEntry(overrides = {}) {
 }
 
 // HAS_ACTIVE_FILTERS
-///////////////////
+/////////////////////
 
 Deno.test("hasActiveFilters: clean state returns false", () => {
   resetState();
@@ -145,9 +146,10 @@ Deno.test("hasActiveFilters: excludeUnspecifiedLevel returns true", () => {
 });
 
 // MATCHES_TEXT
-//////////////
+///////////////
 
-const sampleEntry = {
+const sampleEntry: Entry = {
+  id: "sample",
   title: "The Tomb of Ash",
   desc: "Something refuses to stay dead.",
   authors: ["Mara Thornfield"],
@@ -200,7 +202,7 @@ Deno.test("matchesText: no match when character option absent", () => {
 });
 
 // RANGES_OVERLAP
-////////////////
+/////////////////
 
 Deno.test("rangesOverlap: no filter (both null) always passes", () => {
   assertEquals(rangesOverlap(1, 3, null, null, false), true);
@@ -254,7 +256,7 @@ Deno.test("rangesOverlap: entry max below filter min fails", () => {
 });
 
 // APPLY_FILTERS
-///////////////
+////////////////
 
 Deno.test("applyFilters: null data yields empty filtered", () => {
   resetState();
@@ -776,7 +778,7 @@ Deno.test("applyFilters: no date filter passes all entries regardless of date", 
 });
 
 // SORT_FILTERED
-///////////////
+////////////////
 
 Deno.test("sortFiltered: title sorts alphabetically ascending", () => {
   resetState();
@@ -896,7 +898,7 @@ Deno.test("sortFiltered: level sorts ascending by lmin, null sorts last", () => 
 });
 
 // RANGES_OVERLAP: REGRESSION FOR EXCLUDE_UNSPECIFIED WITHOUT A RANGE FILTER
-//////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
 
 Deno.test("rangesOverlap: no range filter, excludeUnspecified true, no entry data -> fails", () => {
   assertEquals(rangesOverlap(null, null, null, null, true), false);
@@ -912,7 +914,7 @@ Deno.test("rangesOverlap: no range filter, excludeUnspecified true, entry has da
 });
 
 // APPLY_FILTERS: EXCLUDE_UNSPECIFIED STANDALONE (NO RANGE SET)
-/////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
 
 Deno.test("applyFilters: excludeUnspecifiedLevel alone removes null-level entries", () => {
   resetState();
@@ -947,7 +949,7 @@ Deno.test("applyFilters: excludeUnspecifiedParty alone removes null-party entrie
 });
 
 // SORT_FILTERED: SHUFFLE
-////////////////////////
+/////////////////////////
 
 Deno.test("sortFiltered: shuffle produces a valid permutation", () => {
   resetState();

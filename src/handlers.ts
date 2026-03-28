@@ -1,23 +1,24 @@
-import { SEARCH_DEBOUNCE_MS, state } from "./state.js";
-import { debounce } from "./utils.js";
-import { applyFilters, sortFiltered } from "./filters.js";
+import { SEARCH_DEBOUNCE_MS, state } from "./state.ts";
+import { debounce } from "./utils.ts";
+import { applyFilters, sortFiltered } from "./filters.ts";
+import type { PillContainer } from "./render.ts";
 import {
   buildPills,
   renderFilterSidebar,
   renderListPanel,
   renderResults,
   syncFilterControlStates,
-} from "./render.js";
+} from "./render.ts";
 
 export const debouncedSearch = debounce((value) => {
-  state.query = value;
+  state.query = value as string;
   state.page = 1;
   state.expandedCardId = null;
   applyFilters();
   renderResults();
 }, SEARCH_DEBOUNCE_MS);
 
-export function onSortChange(value) {
+export function onSortChange(value: string): void {
   state.sort = value;
   state.sortReverse = false;
   sortFiltered();
@@ -44,13 +45,17 @@ export function onSortChange(value) {
   }
 }
 
-export function onRangeChange() {
-  const levelMin = document.getElementById("level-min");
-  const levelMax = document.getElementById("level-max");
-  const partyMin = document.getElementById("party-min");
-  const partyMax = document.getElementById("party-max");
-  const levelRangeWarning = document.getElementById("level-range-warning");
-  const partyRangeWarning = document.getElementById("party-range-warning");
+export function onRangeChange(): void {
+  const levelMin = document.getElementById("level-min") as HTMLInputElement;
+  const levelMax = document.getElementById("level-max") as HTMLInputElement;
+  const partyMin = document.getElementById("party-min") as HTMLInputElement;
+  const partyMax = document.getElementById("party-max") as HTMLInputElement;
+  const levelRangeWarning = document.getElementById(
+    "level-range-warning",
+  ) as HTMLElement;
+  const partyRangeWarning = document.getElementById(
+    "party-range-warning",
+  ) as HTMLElement;
 
   state.filters.lmin = levelMin.value !== ""
     ? parseInt(levelMin.value, 10)
@@ -85,7 +90,7 @@ export function onRangeChange() {
   renderResults();
 }
 
-export function onClearFilters() {
+export function onClearFilters(): void {
   state.filters = {
     categories: [],
     systems: [],
@@ -97,6 +102,8 @@ export function onClearFilters() {
     authors: [],
     pricings: [],
     character_options: [],
+    hasCharacterOptions: false,
+    official: false,
     upcoming: false,
     excludeUnspecifiedLevel: false,
     excludeUnspecifiedParty: false,
@@ -113,38 +120,42 @@ export function onClearFilters() {
   state.expandedCardId = null;
 
   // Reset search-within inputs
-  document.querySelectorAll(".filter-search-within").forEach((input) => {
-    input.value = "";
+  document.querySelectorAll<HTMLInputElement>(".filter-search-within").forEach(
+    (input) => {
+      input.value = "";
 
-    const targetId = input.dataset.target;
-    const container = document.getElementById(targetId);
+      const targetId = input.dataset.target;
+      const container = targetId
+        ? document.getElementById(targetId) as PillContainer | null
+        : null;
 
-    if (container && container._topValues) {
-      buildPills(
-        container,
-        container._topValues,
-        container._filterKey,
-        container._labelFn,
-      );
-    }
-  });
+      if (container && container._topValues) {
+        buildPills(
+          container,
+          container._topValues,
+          container._filterKey,
+          container._labelFn,
+        );
+      }
+    },
+  );
 
   renderFilterSidebar();
   applyFilters();
   renderResults();
 }
 
-export function openFilterPanel() {
-  const sidebar = document.getElementById("filter-sidebar");
-  const overlay = document.getElementById("filter-overlay");
-  const toggle = document.getElementById("mobile-filter-toggle");
+export function openFilterPanel(): void {
+  const sidebar = document.getElementById("filter-sidebar")!;
+  const overlay = document.getElementById("filter-overlay")!;
+  const toggle = document.getElementById("mobile-filter-toggle")!;
 
   sidebar.classList.add("open");
   sidebar.removeAttribute("aria-hidden");
   overlay.classList.add("active");
   toggle.setAttribute("aria-expanded", "true");
 
-  const first = sidebar.querySelector(
+  const first = sidebar.querySelector<HTMLElement>(
     "button:not([disabled]), input:not([disabled])",
   );
 
@@ -153,10 +164,10 @@ export function openFilterPanel() {
   sidebar.addEventListener("keydown", trapFocus);
 }
 
-export function closeFilterPanel() {
-  const sidebar = document.getElementById("filter-sidebar");
-  const overlay = document.getElementById("filter-overlay");
-  const toggle = document.getElementById("mobile-filter-toggle");
+export function closeFilterPanel(): void {
+  const sidebar = document.getElementById("filter-sidebar")!;
+  const overlay = document.getElementById("filter-overlay")!;
+  const toggle = document.getElementById("mobile-filter-toggle")!;
 
   sidebar.classList.remove("open");
   sidebar.setAttribute("aria-hidden", "true");
@@ -167,28 +178,29 @@ export function closeFilterPanel() {
   sidebar.removeEventListener("keydown", trapFocus);
 }
 
-export function openListPanel() {
-  const panel = document.getElementById("list-panel");
-  const overlay = document.getElementById("list-overlay");
+export function openListPanel(): void {
+  const panel = document.getElementById("list-panel")!;
+  const overlay = document.getElementById("list-overlay")!;
   const toggle = document.getElementById("mobile-list-toggle");
 
   renderListPanel();
+
   panel.classList.add("open");
   panel.removeAttribute("aria-hidden");
   overlay.classList.add("active");
 
   if (toggle) toggle.setAttribute("aria-expanded", "true");
 
-  const first = panel.querySelector(
+  const first = panel.querySelector<HTMLElement>(
     "button:not([disabled]), input:not([disabled])",
   );
 
   if (first) first.focus();
 }
 
-export function closeListPanel() {
-  const panel = document.getElementById("list-panel");
-  const overlay = document.getElementById("list-overlay");
+export function closeListPanel(): void {
+  const panel = document.getElementById("list-panel")!;
+  const overlay = document.getElementById("list-overlay")!;
   const toggle = document.getElementById("mobile-list-toggle");
 
   panel.classList.remove("open");
@@ -201,12 +213,12 @@ export function closeListPanel() {
   }
 }
 
-export function trapFocus(e) {
+export function trapFocus(e: KeyboardEvent): void {
   if (e.key !== "Tab") return;
 
-  const sidebar = document.getElementById("filter-sidebar");
+  const sidebar = document.getElementById("filter-sidebar")!;
 
-  const focusable = sidebar.querySelectorAll(
+  const focusable = sidebar.querySelectorAll<HTMLElement>(
     'button:not([disabled]), input:not([disabled]), a[href], select:not([disabled]), [tabindex]:not([tabindex="-1"])',
   );
 

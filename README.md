@@ -21,10 +21,10 @@ to understand the project in more detail...
 The project spans two repositories under the
 [Lodes & Lanterns](https://github.com/Lodes-and-Lanterns) GitHub organization:
 
-| Repo                                                                             | Purpose                                                            |
-| -------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| **`torchfinder`** (this repo)                                                    | Frontend: HTML, CSS, JS, build script, GitHub Actions deployment   |
-| **[`torchfinder-data`](https://github.com/Lodes-and-Lanterns/torchfinder-data)** | Canonical dataset: YAML entries, schema validation, data artifacts |
+| Repo                                                                             | Purpose                                                                  |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| **`torchfinder`** (this repo)                                                    | Frontend: HTML, CSS, TypeScript, build script, GitHub Actions deployment |
+| **[`torchfinder-data`](https://github.com/Lodes-and-Lanterns/torchfinder-data)** | Canonical dataset: YAML entries, schema validation, data artifacts       |
 
 ## Attributions
 
