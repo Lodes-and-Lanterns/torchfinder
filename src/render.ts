@@ -599,7 +599,8 @@ export function renderResults(): void {
     paginationEl.innerHTML = "";
 
     if (entry) {
-      document.title = `${entry.title} \u2014 Torchfinder`;
+      document.title =
+        `${entry.title} \u2014 Torchfinder \u2014 Lodes & Lanterns`;
       summary.textContent = "";
       list.innerHTML = renderCardHtml(entry, true);
 
@@ -608,7 +609,7 @@ export function renderResults(): void {
       const heading = list.querySelector<HTMLElement>(".card-title");
       if (heading) requestAnimationFrame(() => heading.focus());
     } else {
-      document.title = "Torchfinder";
+      document.title = "Torchfinder \u2014 Lodes & Lanterns";
       summary.textContent = "";
       list.innerHTML = '<div class="empty-state"><p>Entry not found.</p></div>';
     }
@@ -622,7 +623,9 @@ export function renderResults(): void {
 
   // List mode: show list view
   if (state.listMode) {
-    document.title = `${state.listName || "Untitled list"} \u2014 Torchfinder`;
+    document.title = `${
+      state.listName || "Untitled list"
+    } \u2014 Torchfinder \u2014 Lodes & Lanterns`;
 
     document.getElementById("search-sort-bar")!.hidden = true;
     document.getElementById("mobile-filter-toggle")!.hidden = true;
@@ -692,7 +695,7 @@ export function renderResults(): void {
   document.getElementById("search-sort-bar")!.hidden = false;
   document.getElementById("mobile-filter-toggle")!.hidden = false;
 
-  document.title = "Torchfinder";
+  document.title = "Torchfinder \u2014 Lodes & Lanterns";
 
   backBtn.hidden = true;
 
