@@ -1,0 +1,239 @@
+/* =============================================================================
+   layout.css: Global layout, header, footer
+   ============================================================================= */
+
+/* Global Layout */
+/*---------------*/
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1;
+  padding: 1rem;
+}
+
+#app {
+  display: grid;
+  grid-template-columns: var(--tf-sidebar-width) 1fr;
+  grid-template-areas: "sidebar results";
+  gap: var(--tf-gap);
+  max-width: 1400px;
+  margin: 0 auto;
+  align-items: start;
+}
+
+#sidebar-column {
+  grid-area: sidebar;
+  position: sticky;
+  top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-self: start;
+}
+
+/* Header */
+/*--------*/
+#header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1.25rem 1rem 0.75rem;
+}
+
+#header-branding h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+
+#header-branding h1 a {
+  text-decoration: none;
+  color: inherit;
+}
+
+#header-branding h1 .h1-title {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+#header-branding h1 .h1-title:hover {
+  color: var(--tf-accent);
+}
+
+#header-branding h1 .h1-prefix {
+  display: block;
+  font-size: 0.48em;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tf-muted);
+  margin-bottom: 0.2em;
+  transition: color 0.15s;
+}
+
+#header-branding h1 .h1-prefix:hover {
+  color: var(--tf-accent);
+}
+
+#header-branding p {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.875rem;
+  color: var(--tf-muted);
+}
+
+#header-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+#theme-toggle {
+  background: none;
+  border: none;
+  padding: 0.25rem 0.4rem;
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: var(--tf-radius);
+  color: inherit;
+  box-shadow: none;
+  width: auto;
+  margin: 0;
+  transition: background 0.15s;
+}
+
+#theme-toggle:hover {
+  background: var(--tf-border);
+}
+
+#mobile-list-toggle,
+#header-add-content,
+#random-content-btn {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+#mobile-filter-toggle {
+  display: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Footer */
+/*--------*/
+footer {
+  padding: 1rem;
+}
+
+#footer-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  font-size: 0.875rem;
+  color: var(--tf-muted);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+#footer-inner p {
+  margin: 0;
+}
+
+#footer-meta {
+  max-width: 1400px;
+  margin: 0.5rem auto 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.75rem;
+  color: var(--tf-muted);
+}
+
+#footer-meta p {
+  margin: 0;
+}
+
+#footer-disclaimer {
+  max-width: 1400px;
+  margin: 0.75rem auto 0;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--tf-border);
+  font-size: 0.75rem;
+  color: var(--tf-muted);
+}
+
+/* Cover consent banner */
+/*----------------------*/
+#cover-consent-banner {
+  max-width: 1400px;
+  margin: 0 auto 1rem;
+  padding: 0.875rem 1rem;
+  background: var(--tf-surface);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius);
+  font-size: 0.875rem;
+  color: var(--tf-muted);
+}
+
+#cover-consent-banner p {
+  margin: 0 0 0.75rem;
+}
+
+.cover-consent-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.cover-consent-actions button {
+  width: auto;
+}
+
+/* Link-style button (inline, no border) */
+/*---------------------------------------*/
+.link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  font-size: inherit;
+  color: var(--tf-accent);
+  cursor: pointer;
+  text-decoration: underline;
+  width: auto;
+  box-shadow: none;
+}
+
+.link-btn:hover {
+  color: var(--tf-accent-hover);
+}
+
+/* Responsive: Mobile layout overrides */
+/*-------------------------------------*/
+@media (max-width: 800px) {
+  #app {
+    grid-template-columns: 1fr;
+    grid-template-areas: "results";
+  }
+
+  #sidebar-column {
+    display: contents;
+  }
+
+  #header-add-content,
+  #random-content-btn,
+  #mobile-list-toggle {
+    display: none;
+  }
+}
