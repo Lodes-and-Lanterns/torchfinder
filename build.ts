@@ -265,7 +265,31 @@ indexHtml = indexHtml.replace(
   `$1common-web/$2?v=${styleHash}$3`,
 );
 
-const appDate = new Date().toISOString().slice(0, 10);
+let appDate = new Date().toISOString().slice(0, 10);
+try {
+  const appCommitResp = await fetch(
+    "https://api.github.com/repos/Lodes-and-Lanterns/torchfinder/commits/main",
+    { headers: { "Accept": "application/vnd.github+json" } },
+  );
+
+  if (appCommitResp.ok) {
+    const appCommit = await appCommitResp.json();
+    const commitDate = appCommit?.commit?.committer?.date;
+
+    if (typeof commitDate === "string") {
+      appDate = commitDate.slice(0, 10);
+      console.log(`App commit date: ${appDate}`);
+    } else {
+      console.warn("App commit date unavailable; using build date.");
+    }
+  } else {
+    console.warn(
+      `GitHub API returned HTTP ${appCommitResp.status}; using build date for app.`,
+    );
+  }
+} catch (err) {
+  console.warn(`Could not fetch app commit date: ${err}; using build date.`);
+}
 
 const appLink =
   `<a href="https://github.com/Lodes-and-Lanterns/torchfinder" target="_blank" rel="noopener">app</a>`;
