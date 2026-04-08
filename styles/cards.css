@@ -416,6 +416,11 @@
   color: #4c1d95;
 }
 
+.badge.campaign-ended {
+  background: var(--tf-border);
+  color: var(--tf-muted);
+}
+
 .card-footer-actions {
   margin-top: 0.75rem;
   padding-top: 0.5rem;

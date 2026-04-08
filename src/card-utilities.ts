@@ -161,26 +161,39 @@ export function buildExpandedHtml(entry: Entry, upcoming: boolean): string {
     pwyw: "PWYW",
   };
 
+  const crowdfundingPlatforms = new Set(["kickstarter", "backerkit"]);
+
   const linksHtml = (entry.links || [])
     .map((link) => {
       const typeLabel = link.type && LINK_TYPE_LABELS[link.type]
         ? ` <span class="link-type-desc">${LINK_TYPE_LABELS[link.type]}</span>`
         : "";
+
       const pricingLabel = link.pricing && LINK_PRICING_LABELS[link.pricing]
         ? ` <span class="link-pricing-badge">${
           LINK_PRICING_LABELS[link.pricing]
         }</span>`
         : "";
+
       const langLabel = link.language && link.language !== "en"
         ? ` <span class="lang-badge">${
           escapeHtml(langName(link.language))
         }</span>`
         : "";
+
+      const isCrowdfunding = crowdfundingPlatforms.has(
+        link.title.toLowerCase().replace(/\s+/g, ""),
+      );
+
+      const campaignEndedLabel = isCrowdfunding && entry.date && !upcoming
+        ? ` <span class="badge campaign-ended">Campaign Ended</span>`
+        : "";
+
       return `<li><a href="${
         escapeHtml(link.url)
       }" target="_blank" rel="noopener">${
         escapeHtml(link.title)
-      }</a>${typeLabel}${pricingLabel}${langLabel}</li>`;
+      }</a>${typeLabel}${pricingLabel}${langLabel}${campaignEndedLabel}</li>`;
     }).join("");
 
   let parentHtml = "";
