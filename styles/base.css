@@ -1,62 +1,6 @@
 /* =============================================================================
-   base.css: Reset, custom properties, base elements, links, utilities
+   base.css: App-specific custom properties, base elements, links, utilities
    ============================================================================= */
-
-@import "../common-web/tokens.css";
-
-/* Reset */
-/*-------*/
-*, *::before, *::after {
-  box-sizing: border-box;
-}
-body, h1, h2, h3, h4, h5, h6, p, ul, ol, figure, blockquote {
-  margin: 0;
-  padding: 0;
-}
-button, input, textarea, select {
-  font: inherit;
-}
-img, svg {
-  display: block;
-  max-width: 100%;
-}
-[hidden] {
-  display: none !important;
-}
-
-/* Responsive font scale */
-/*-----------------------*/
-:root {
-  --tf-font-size: 100%;
-}
-@media (min-width: 576px) {
-  :root {
-    --tf-font-size: 106.25%;
-  }
-}
-@media (min-width: 768px) {
-  :root {
-    --tf-font-size: 112.5%;
-  }
-}
-@media (min-width: 1024px) {
-  :root {
-    --tf-font-size: 118.75%;
-  }
-}
-@media (min-width: 1280px) {
-  :root {
-    --tf-font-size: 125%;
-  }
-}
-@media (min-width: 1536px) {
-  :root {
-    --tf-font-size: 131.25%;
-  }
-}
-html {
-  font-size: var(--tf-font-size);
-}
 
 /* Properties */
 /*------------*/

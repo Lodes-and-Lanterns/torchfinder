@@ -576,16 +576,18 @@
 }
 
 @media (max-width: 500px) {
-  .card-header,
-  .card-header:has(.card-cover-wrap) {
+  .card-header {
     grid-template-columns: 1fr auto;
     grid-template-areas:
       "main icon"
       "tags tags";
   }
 
-  .card-cover-wrap {
-    display: none;
+  .card-header:has(.card-cover-wrap) {
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      "cover main icon"
+      "cover tags tags";
   }
 
   .card-tags {

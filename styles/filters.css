@@ -267,7 +267,11 @@
 @media (max-width: 800px) {
   #mobile-list-toggle,
   #mobile-filter-toggle {
-    display: block;
+    display: inline-flex;
+  }
+
+  #mobile-filter-toggle {
+    gap: 0.4em;
   }
 
   #close-filter-panel {

@@ -1,5 +1,5 @@
 /* =============================================================================
-   layout.css: Global layout, header, footer
+   layout.css: App-specific global layout, header controls, footer meta
    ============================================================================= */
 
 /* Global Layout */
@@ -35,86 +35,8 @@ main {
   align-self: start;
 }
 
-/* Header */
-/*--------*/
-#header-inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 1.25rem 1rem 0.75rem;
-}
-
-#header-branding h1 {
-  margin: 0;
-  font-size: 1.5rem;
-  line-height: 1.2;
-}
-
-#header-branding h1 a {
-  text-decoration: none;
-  color: inherit;
-}
-
-#header-branding h1 .h1-title {
-  color: inherit;
-  text-decoration: none;
-  transition: color 0.15s;
-}
-
-#header-branding h1 .h1-title:hover {
-  color: var(--tf-accent);
-}
-
-#header-branding h1 .h1-prefix {
-  display: block;
-  font-size: 0.48em;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--tf-muted);
-  margin-bottom: 0.2em;
-  transition: color 0.15s;
-}
-
-#header-branding h1 .h1-prefix:hover {
-  color: var(--tf-accent);
-}
-
-#header-branding p {
-  margin: 0.5rem 0 0 0;
-  font-size: 0.875rem;
-  color: var(--tf-muted);
-}
-
-#header-controls {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-shrink: 0;
-}
-
-#theme-toggle {
-  background: none;
-  border: none;
-  padding: 0.25rem 0.4rem;
-  font-size: 1.15rem;
-  line-height: 1;
-  cursor: pointer;
-  border-radius: var(--tf-radius);
-  color: inherit;
-  box-shadow: none;
-  width: auto;
-  margin: 0;
-  transition: background 0.15s;
-}
-
-#theme-toggle:hover {
-  background: var(--tf-border);
-}
-
+/* Header Controls */
+/*-----------------*/
 #mobile-list-toggle,
 #header-add-content,
 #random-content-btn {
@@ -130,25 +52,6 @@ main {
 
 /* Footer */
 /*--------*/
-footer {
-  padding: 1rem;
-}
-
-#footer-inner {
-  max-width: 1400px;
-  margin: 0 auto;
-  font-size: 0.875rem;
-  color: var(--tf-muted);
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-#footer-inner p {
-  margin: 0;
-}
-
 #footer-meta {
   max-width: 1400px;
   margin: 0.5rem auto 0;
@@ -161,15 +64,6 @@ footer {
 
 #footer-meta p {
   margin: 0;
-}
-
-#footer-disclaimer {
-  max-width: 1400px;
-  margin: 0.75rem auto 0;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--tf-border);
-  font-size: 0.75rem;
-  color: var(--tf-muted);
 }
 
 /* Cover consent banner */
@@ -235,5 +129,9 @@ footer {
   #random-content-btn,
   #mobile-list-toggle {
     display: none;
+  }
+
+  #footer-inner {
+    gap: 1rem;
   }
 }
