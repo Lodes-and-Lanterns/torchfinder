@@ -1,14 +1,14 @@
 import { SEARCH_DEBOUNCE_MS, state } from "./state.ts";
 import { debounce } from "./utils.ts";
 import { applyFilters, sortFiltered } from "./filters.ts";
-import type { PillContainer } from "./render.ts";
+import type { PillContainer } from "./filter-sidebar-utilities.ts";
 import {
   buildPills,
   renderFilterSidebar,
-  renderListPanel,
-  renderResults,
   syncFilterControlStates,
-} from "./render.ts";
+} from "./filter-sidebar.ts";
+import { renderListPanel } from "./list-view.ts";
+import { renderResults } from "./render.ts";
 
 export const debouncedSearch = debounce((value) => {
   state.query = value as string;

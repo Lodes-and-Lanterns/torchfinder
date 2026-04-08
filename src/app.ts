@@ -7,18 +7,19 @@ import { applyFilters, clearShuffleCache, sortFiltered } from "./filters.ts";
 import { clearAllLists, getLists, importLists } from "./lists.ts";
 import { createMonthPicker } from "./month-picker.ts";
 import { getCoverConsent, setCoverConsent } from "./consent.ts";
-import type { PillContainer } from "./render.ts";
+import type { PillContainer } from "./filter-sidebar-utilities.ts";
 import {
   buildPills,
-  closeAddToListModal,
-  enableControls,
   renderFilterSidebar,
-  renderListPanel,
+  syncFilterControlStates,
+  syncPillFade,
+} from "./filter-sidebar.ts";
+import { closeAddToListModal, renderListPanel } from "./list-view.ts";
+import {
+  enableControls,
   renderResults,
   showError,
   showLoading,
-  syncFilterControlStates,
-  syncPillFade,
 } from "./render.ts";
 import {
   closeFilterPanel,
