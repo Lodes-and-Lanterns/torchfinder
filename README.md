@@ -2,7 +2,7 @@
 
 Content lookup for [Shadowdark](https://www.thearcanelibrary.com).
 
-**[Use it now.](https://torchfinder.lodesandlanterns.com)**
+**[Use Torchfinder now.](https://torchfinder.lodesandlanterns.com)**
 
 Built by [Reese](https://github.com/reeseschultz).
 
