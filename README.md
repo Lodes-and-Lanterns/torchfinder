@@ -1,8 +1,6 @@
 # Torchfinder 🔥
 
-A [Lodes & Lanterns](https://lodesandlanterns.com) app for finding official and
-third-party [Shadowdark](https://www.thearcanelibrary.com) content. The app is
-free and open source.
+Content lookup for [Shadowdark](https://www.thearcanelibrary.com).
 
 **[Use it now.](https://torchfinder.lodesandlanterns.com)**
 
