@@ -103,7 +103,7 @@ function generateFeed(adventures: Adventure[]): string {
 <rss version="2.0">
   <channel>
     <title>Torchfinder -- Lodes &amp; Lanterns</title>
-    <description>Find official and third-party Shadowdark content, including adventures, supplements, and zines.</description>
+    <description>Content lookup for Shadowdark. Find adventures, supplements, and zines.</description>
     <link>${SITE_URL}</link>
     <language>en</language>
     <lastBuildDate>${buildDate}</lastBuildDate>
