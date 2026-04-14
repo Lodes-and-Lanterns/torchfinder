@@ -1,0 +1,137 @@
+/* =============================================================================
+   layout.css: App-specific global layout, header controls, footer meta
+   ============================================================================= */
+
+/* Global Layout */
+/*---------------*/
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1;
+  padding: 1rem;
+}
+
+#app {
+  display: grid;
+  grid-template-columns: var(--tf-sidebar-width) 1fr;
+  grid-template-areas: "sidebar results";
+  gap: var(--tf-gap);
+  max-width: 1400px;
+  margin: 0 auto;
+  align-items: start;
+}
+
+#sidebar-column {
+  grid-area: sidebar;
+  position: sticky;
+  top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-self: start;
+}
+
+/* Header Controls */
+/*-----------------*/
+#mobile-list-toggle,
+#header-add-content,
+#random-content-btn {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+#mobile-filter-toggle {
+  display: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Footer */
+/*--------*/
+#footer-meta {
+  max-width: 1400px;
+  margin: 0.5rem auto 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.75rem;
+  color: var(--tf-muted);
+}
+
+#footer-meta p {
+  margin: 0;
+}
+
+/* Cover consent banner */
+/*----------------------*/
+#cover-consent-banner {
+  max-width: 1400px;
+  margin: 0 auto 1rem;
+  padding: 0.875rem 1rem;
+  background: var(--tf-surface);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius);
+  font-size: 0.875rem;
+  color: var(--tf-muted);
+}
+
+#cover-consent-banner p {
+  margin: 0 0 0.75rem;
+}
+
+.cover-consent-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.cover-consent-actions button {
+  width: auto;
+}
+
+/* Link-style button (inline, no border) */
+/*---------------------------------------*/
+.link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  font-size: inherit;
+  color: var(--tf-accent);
+  cursor: pointer;
+  text-decoration: underline;
+  width: auto;
+  box-shadow: none;
+}
+
+.link-btn:hover {
+  color: var(--tf-accent-hover);
+}
+
+/* Responsive: Mobile layout overrides */
+/*-------------------------------------*/
+@media (max-width: 800px) {
+  #app {
+    grid-template-columns: 1fr;
+    grid-template-areas: "results";
+  }
+
+  #sidebar-column {
+    display: contents;
+  }
+
+  #header-add-content,
+  #random-content-btn,
+  #mobile-list-toggle {
+    display: none;
+  }
+
+  #footer-inner {
+    gap: 1rem;
+  }
+}

@@ -1,0 +1,55 @@
+/* =============================================================================
+   buttons.css: App-specific button variants
+   ============================================================================= */
+
+/* Consent Buttons */
+/*-----------------*/
+button.btn-confirm {
+  color: #16a34a;
+  border-color: #16a34a;
+}
+
+button.btn-confirm:hover:not(:disabled) {
+  background: #16a34a;
+  color: #fff;
+  border-color: #16a34a;
+}
+
+[data-theme="dark"] button.btn-confirm {
+  color: #4ade80;
+  border-color: #4ade80;
+}
+
+[data-theme="dark"] button.btn-confirm:hover:not(:disabled) {
+  background: #4ade80;
+  color: #1a1a1a;
+  border-color: #4ade80;
+}
+
+/* Delete Buttons */
+/*----------------*/
+button.btn-delete,
+[role="button"].btn-delete {
+  color: #dc2626;
+  border-color: #dc2626;
+}
+
+button.btn-delete:hover:not(:disabled),
+[role="button"].btn-delete:hover {
+  background: #dc2626;
+  color: #fff;
+  border-color: #dc2626;
+}
+
+[data-theme="dark"] button.btn-delete,
+[data-theme="dark"] [role="button"].btn-delete {
+  color: #f87171;
+  border-color: #f87171;
+}
+
+[data-theme="dark"] button.btn-delete:hover:not(:disabled),
+[data-theme="dark"] [role="button"].btn-delete:hover {
+  background: #f87171;
+  color: #1a1a1a;
+  border-color: #f87171;
+}
