@@ -17,7 +17,7 @@ import { denoPlugins } from "@luca/esbuild-deno-loader";
 const DATA_RELEASE_URL =
   "https://github.com/Lodes-and-Lanterns/torchfinder-data/releases/latest/download/torchfinder-dataset.jsonl";
 
-const SITE_URL = "https://torchfinder.lodesandlanterns.com";
+const SITE_URL = "https://reese.biz/torchfinder";
 
 const FEED_ITEM_LIMIT = 50;
 
@@ -102,7 +102,7 @@ function generateFeed(adventures: Adventure[]): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
   <channel>
-    <title>Torchfinder -- Lodes &amp; Lanterns</title>
+    <title>Torchfinder -- reese.biz</title>
     <description>Content lookup for Shadowdark. Find adventures, supplements, and zines.</description>
     <link>${SITE_URL}</link>
     <language>en</language>

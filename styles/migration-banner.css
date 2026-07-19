@@ -1,0 +1,48 @@
+/* =============================================================================
+   migration-banner.css: Notice that Torchfinder is moving to reese.biz.
+   ============================================================================= */
+
+#migration-banner {
+  background: var(--ll-accent);
+  color: var(--ll-accent-fg);
+  border-bottom: 1px solid var(--ll-border);
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+#migration-banner-inner {
+  max-width: var(--ll-max-width);
+  margin: 0 auto;
+  padding: 0.6rem 1rem;
+  text-align: center;
+}
+
+#migration-banner a {
+  color: var(--ll-accent-fg);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+#migration-banner a:hover,
+#migration-banner a:focus-visible {
+  text-decoration: none;
+}
+
+/* 'Lists' trigger: a button that mimics the inline banner links */
+#migration-banner .banner-linklike {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--ll-accent-fg);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+#migration-banner .banner-linklike:hover,
+#migration-banner .banner-linklike:focus-visible {
+  text-decoration: none;
+}

@@ -7,7 +7,7 @@
   <link rel="icon" href="/common-web/favicon.png" type="image/png">
   <link rel="apple-touch-icon" href="/common-web/apple-touch-icon.png">
 
-  <title>Torchfinder — Lodes &amp; Lanterns</title>
+  <title>Torchfinder — reese.biz</title>
 
   <meta name="description" content="Content lookup for Shadowdark, including adventures, supplements, and zines." />
 
@@ -15,7 +15,8 @@
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Torchfinder" />
   <meta property="og:description" content="Content lookup for Shadowdark, including adventures, supplements, and zines." />
-  <meta property="og:url" content="https://torchfinder.lodesandlanterns.com" />
+  <meta property="og:url" content="https://reese.biz/torchfinder/" />
+  <link rel="canonical" href="https://reese.biz/torchfinder/" />
   <meta property="og:site_name" content="Torchfinder" />
 
   <!-- Twitter Card -->
@@ -65,13 +66,35 @@
   <link rel="stylesheet" href="styles/cards.css">
   <link rel="stylesheet" href="styles/lists.css">
   <link rel="stylesheet" href="styles/month-picker.css">
+  <link rel="stylesheet" href="styles/migration-banner.css">
 </head>
 <body>
+
+  <div id="migration-banner" role="region" aria-label="Site relocation notice">
+    <div id="migration-banner-inner">
+      Hey, Torchfinder has moved to <a href="https://reese.biz/torchfinder/">reese.biz</a>! Sorry, won't change the domain again, lol. <a target="_blank" rel="noopener" href="https://reese.biz/blog/about-my-tools-for-shadowdark.html">Here's why</a>.<br />
+      So update your bookmarks, because this page will begin redirecting there on August 20th.<br />
+      Remember, you can export lists as files and import them into <a href="https://reese.biz/torchfinder/">reese.biz/torchfinder</a> at the bottom of the <button type="button" id="banner-open-lists" class="banner-linklike" aria-haspopup="dialog" aria-controls="list-panel">Lists</button> view.
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var trigger = document.getElementById('banner-open-lists');
+      if (!trigger) return;
+
+      trigger.addEventListener('click', function () {
+        var listsBtn = document.getElementById('mobile-list-toggle');
+        if (listsBtn) listsBtn.click();
+      });
+    })();
+  </script>
+
   <header>
     <div id="header-inner">
       <div id="header-branding">
-        <h1><a class="h1-prefix" href="https://lodesandlanterns.com">Lodes & Lanterns</a><a class="h1-title" href="/" id="home-link">Torchfinder 🔥</a></h1>
-        <p>Content lookup for <a href="https://www.thearcanelibrary.com" target="_blank" rel="noopener">Shadowdark</a>. Looking for <a href="https://torchtimer.lodesandlanterns.com" target="_blank" rel="noopener">torches</a>?</p>
+        <h1><a class="h1-prefix" href="https://reese.biz">reese.biz</a><a class="h1-title" href="/" id="home-link">Torchfinder 🔥</a></h1>
+        <p>Content lookup for <a href="https://www.thearcanelibrary.com" target="_blank" rel="noopener">Shadowdark</a>. Looking for <a href="https://reese.biz/torchtimer/" target="_blank" rel="noopener">torches</a>?</p>
       </div>
       <div id="header-controls">
         <a href="https://github.com/Lodes-and-Lanterns/torchfinder-data/issues/new?template=new-entry.yml&title=New+entry%3A+&labels=new-entry" target="_blank" rel="noopener" id="header-add-content" class="outline secondary" role="button">Add content 🧙</a>
@@ -350,10 +373,10 @@
   <footer>
     <div id="footer-inner">
       <p>
-        © 2026 <a href="https://lodesandlanterns.com/about.html" target="_blank" rel="noopener">Reese Schultz</a>
+        © 2026 <a href="https://reese.biz/about.html" target="_blank" rel="noopener">Reese Schultz</a>
       </p>
       <p>
-        A <a href="https://lodesandlanterns.com" target="_blank" rel="noopener">Lodes &amp; Lanterns</a> project.
+        A <a href="https://reese.biz" target="_blank" rel="noopener">reese.biz</a> project.
         Found a <a href="https://github.com/Lodes-and-Lanterns/torchfinder/issues" target="_blank" rel="noopener">site issue</a>?
       </p>
       <p>
@@ -363,9 +386,9 @@
         &middot;
         <a href="https://github.com/Lodes-and-Lanterns/torchfinder/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>
         &middot;
-        <a href="https://lodesandlanterns.com/privacy.html" target="_blank" rel="noopener">Privacy</a>
+        <a href="https://reese.biz/privacy.html" target="_blank" rel="noopener">Privacy</a>
         &middot;
-        <a href="https://lodesandlanterns.com/attributions.html" target="_blank" rel="noopener">Attributions</a>
+        <a href="https://reese.biz/attributions.html" target="_blank" rel="noopener">Attributions</a>
       </p>
     </div>
 
@@ -390,7 +413,7 @@
         <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.en" target="_blank" rel="noopener">CC BY-SA 4.0</a>.
       </p>
       <p>
-        Lodes &amp; Lanterns is not affiliated with The Arcane Library, LLC. Shadowdark RPG &copy; 2023 The Arcane Library, LLC.
+        reese.biz is not affiliated with The Arcane Library, LLC. Shadowdark RPG &copy; 2023 The Arcane Library, LLC.
       </p>
     </div>
   </footer>
