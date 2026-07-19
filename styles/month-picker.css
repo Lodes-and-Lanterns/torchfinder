@@ -1,0 +1,125 @@
+/* =============================================================================
+   month-picker.css: Custom month+year range picker
+   ============================================================================= */
+
+/* Popover container */
+/*--------------------*/
+.month-picker-popover {
+  position: fixed;
+  z-index: var(--tf-tooltip-z);
+  background: var(--tf-surface);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  padding: 0.6rem;
+  min-width: 13rem;
+  user-select: none;
+}
+
+/* Year navigation row */
+/*----------------------*/
+.month-picker-year-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.month-picker-year-btn {
+  background: none;
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius);
+  color: var(--tf-color);
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  line-height: 1;
+  box-shadow: none;
+  margin: 0;
+  width: auto;
+  min-width: 0;
+}
+
+.month-picker-year-btn:hover:not(:disabled) {
+  border-color: var(--tf-accent);
+  color: var(--tf-accent);
+  background: none;
+}
+
+.month-picker-year-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-align: center;
+  flex: 1;
+  color: var(--tf-color);
+}
+
+/* Month grid */
+/*-------------*/
+.month-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.25rem;
+}
+
+.month-picker-cell {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--tf-radius);
+  color: var(--tf-color);
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 0.35rem 0.25rem;
+  text-align: center;
+  line-height: 1.2;
+  box-shadow: none;
+  margin: 0;
+  width: 100%;
+  min-width: 0;
+  transition: background 0.1s, border-color 0.1s, color 0.1s;
+}
+
+.month-picker-cell:hover:not(:disabled):not(.selected) {
+  background: color-mix(in srgb, var(--tf-accent) 15%, transparent);
+  border-color: var(--tf-accent);
+  color: var(--tf-accent);
+}
+
+.month-picker-cell:focus-visible {
+  outline: 2px solid var(--tf-accent);
+  outline-offset: 1px;
+}
+
+.month-picker-cell.selected {
+  background: var(--tf-accent);
+  border-color: var(--tf-accent);
+  color: var(--tf-accent-fg);
+}
+
+.month-picker-cell.selected:hover {
+  background: var(--tf-accent-hover);
+  border-color: var(--tf-accent-hover);
+}
+
+.month-picker-cell:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Range inputs */
+/*---------------*/
+.month-picker-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.875rem;
+  margin: 0;
+  cursor: pointer;
+  text-align: center;
+}
+
+.month-picker-input:focus {
+  outline: 2px solid var(--tf-accent);
+  outline-offset: 1px;
+}

@@ -1,0 +1,325 @@
+/* =============================================================================
+   filters.css: Filter sidebar, groups, pills, mobile overlay
+   ============================================================================= */
+
+/* Filter Sidebar */
+/*----------------*/
+#filter-sidebar {
+  max-height: calc(100vh - 5rem);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius);
+  padding: 1rem;
+  background: var(--tf-surface);
+}
+
+#filter-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--tf-border);
+}
+
+#filter-panel-title {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+#filter-panel-actions {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+#filter-panel-actions button {
+  font-size: 0.8rem;
+  padding: 0.25rem 0.6rem;
+  margin: 0;
+}
+
+#clear-filters:disabled {
+  opacity: 1;
+}
+
+#close-filter-panel {
+  display: none;
+}
+
+/* Filter Groups */
+/*---------------*/
+.filter-group {
+  margin-bottom: 1.25rem;
+}
+
+.filter-group:last-child {
+  margin-bottom: 0;
+}
+
+.filter-group-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
+  width: 100%;
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--tf-muted);
+  cursor: pointer;
+  text-align: left;
+}
+
+.filter-group-toggle:hover:not(:disabled) {
+  color: var(--tf-accent);
+  background: none;
+}
+
+.filter-group-chevron {
+  font-size: 0.6rem;
+  flex-shrink: 0;
+  margin-left: auto;
+  transition: transform 0.15s;
+}
+
+.filter-active-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25em;
+  height: 1.25em;
+  padding: 0 0.25em;
+  background: var(--tf-accent);
+  color: var(--tf-accent-fg);
+  border-radius: 999px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.filter-group-toggle[aria-expanded="true"] .filter-group-chevron {
+  transform: rotate(90deg);
+}
+
+.filter-group-content {
+  display: none;
+  padding-top: 0.5rem;
+  position: relative;
+}
+
+.filter-group-content::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2.5rem;
+  background: linear-gradient(to top, var(--tf-surface), transparent);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.filter-group-content.has-pill-overflow::after {
+  opacity: 1;
+}
+
+#filter-sidebar-bottom {
+  display: none;
+}
+
+#filter-quick-toggles {
+  display: flex;
+  gap: 1rem;
+  padding-top: 1rem;
+  margin-top: 0.25rem;
+  border-top: 1px solid var(--tf-border);
+}
+
+.filter-group-content .filter-inline-label {
+  margin-bottom: 0.5rem;
+}
+
+.filter-inline-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.range-inputs input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.range-separator {
+  color: var(--tf-muted);
+  flex-shrink: 0;
+}
+
+.range-warning {
+  font-size: 0.8rem;
+  color: var(--tf-danger);
+  margin: 0 0 0.4rem 0;
+}
+
+.filter-search-within {
+  width: 100%;
+  margin-bottom: 0.5rem;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.85rem;
+}
+
+.filter-more-note {
+  margin: 0.4rem 0 0;
+  font-size: 0.75rem;
+  color: var(--tf-muted);
+  font-style: italic;
+}
+
+/* Pill Groups */
+/*-------------*/
+.pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  max-height: 8rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--tf-border-radius-pill);
+  border: 1px solid var(--tf-border);
+  background: transparent;
+  color: var(--tf-color);
+  cursor: pointer;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  user-select: none;
+  box-shadow: none;
+  margin: 0;
+  width: auto;
+}
+
+.pill:hover {
+  border-color: var(--tf-accent);
+  color: #fff;
+  background: var(--tf-accent);
+}
+
+.pill.active {
+  background: var(--tf-accent);
+  border-color: var(--tf-accent);
+  color: var(--tf-accent-fg);
+}
+
+.pill.active:hover {
+  background: var(--tf-accent);
+  border-color: var(--tf-accent);
+  color: var(--tf-accent-fg);
+}
+
+/* Mobile Filter Overlay */
+/*-----------------------*/
+#filter-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: var(--tf-overlay-z);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+
+#filter-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Responsive: Mobile filter overrides */
+/*-------------------------------------*/
+@media (max-width: 800px) {
+  #mobile-list-toggle,
+  #mobile-filter-toggle {
+    display: inline-flex;
+  }
+
+  #mobile-filter-toggle {
+    gap: 0.4em;
+  }
+
+  #close-filter-panel {
+    display: flex;
+  }
+
+  #filter-sidebar {
+    grid-area: unset;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 85%;
+    max-width: 320px;
+    max-height: 100%;
+    border-radius: 0;
+    border: none;
+    border-right: 1px solid var(--tf-border);
+    z-index: var(--tf-sidebar-z);
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    overflow-y: auto;
+  }
+
+  #filter-sidebar.open {
+    transform: translateX(0);
+  }
+
+  #filter-overlay {
+    display: block;
+  }
+
+  #filter-sidebar-bottom {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--tf-border);
+  }
+
+  #filter-sidebar-bottom a,
+  #filter-sidebar-bottom button {
+    display: block;
+    width: 100%;
+    text-align: center;
+    font-size: 0.85rem;
+    padding: 0.3rem 0.6rem;
+    margin: 0;
+  }
+}

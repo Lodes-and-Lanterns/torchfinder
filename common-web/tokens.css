@@ -1,0 +1,37 @@
+/* =============================================================================
+   tokens.css: Lodes & Lanterns design tokens
+   Canonical values for all LL properties. Each app maps these to its own
+   local var names as needed.
+   ============================================================================= */
+
+:root {
+  /* Accent */
+  --ll-accent: #000000;
+  --ll-accent-hover: #f5a848;
+  --ll-accent-fg: #ffffff;
+
+  /* Radius */
+  --ll-radius: 0.25rem;
+
+  /* Layout */
+  --ll-font-size: 100%;
+  --ll-max-width: 1400px;
+
+  /* Light mode (default) */
+  --ll-bg: #f5f5f5;
+  --ll-surface: #ffffff;
+  --ll-text: #1a1a1a;
+  --ll-text-muted: #555555;
+  --ll-border: #c5cad5;
+}
+
+[data-theme="dark"] {
+  --ll-accent: #f5a848;
+  --ll-accent-hover: #d08f3d;
+  --ll-accent-fg: #1a1a1a;
+  --ll-bg: #13161e;
+  --ll-surface: #1d2535;
+  --ll-text: #c2c7d0;
+  --ll-text-muted: #7b8495;
+  --ll-border: #3d4c66;
+}
